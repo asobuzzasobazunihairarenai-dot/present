@@ -4,39 +4,249 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>準備中</title>
+<title>読み込み中…</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Old+Mincho:wght@600;900&family=Noto+Sans+JP:wght@400;500;700&display=swap">
 <style>
-  :root{ --bg:#f7f6f3; --ink:#1b1a21; --muted:#75727f; --line:#e2dfdb; }
-  @media (prefers-color-scheme: dark){
-    :root{ --bg:#14131a; --ink:#eae8f0; --muted:#918da1; --line:#2e2c3a; }
+  :root{
+    --paper:#faf9f6; --panel:#fff; --ink:#1c1b22; --ink-soft:#43414e; --muted:#75727f;
+    --rule:#e6e2db; --accent:#1f7f92; --accent-deep:#155e6d;
+    --win:#b8860b; --warn:#a8560c; --warn-pale:#fdf3e6;
+    --c1:#c70025; --c2:#ee781f; --c3:#fabe00; --c4:#22ac38; --c5:#1bb8ce; --c6:#f19ec2; --c7:#915da3;
   }
-  *{ box-sizing:border-box; margin:0; }
+  *{box-sizing:border-box;margin:0;padding:0}
   body{
-    background:var(--bg); color:var(--ink); min-height:100vh;
-    display:grid; place-items:center; padding:2rem;
-    font-family:"Hiragino Sans","Yu Gothic UI",system-ui,sans-serif;
-    line-height:1.9;
+    background:var(--paper); color:var(--ink); min-height:100vh;
+    font-family:"Noto Sans JP","Hiragino Sans","Yu Gothic UI",system-ui,sans-serif;
+    line-height:1.85; padding:0 1.1rem 4rem;
   }
-  .box{ text-align:center; max-width:26rem; }
-  .bar{ display:flex; gap:3px; margin:0 auto 1.8rem; width:11rem; }
-  .bar span{ height:5px; flex:1; border-radius:1px; }
-  h1{ font-size:1.15rem; font-weight:700; letter-spacing:.04em; }
-  p{ color:var(--muted); font-size:.86rem; margin-top:.7rem; }
-  .rule{ border-top:1px solid var(--line); margin:1.8rem 0 0; padding-top:1rem; }
-  .rule p{ font-size:.76rem; }
+  .spectrum{display:flex;gap:2px;height:6px;margin:0 -1.1rem 0}
+  .spectrum i{flex:1}
+  .wrap{max-width:34rem;margin:0 auto;padding-top:2.6rem}
+  .mincho{font-family:"Zen Old Mincho",serif}
+
+  .eyebrow{font-size:.72rem;letter-spacing:.24em;color:var(--accent-deep);font-weight:700;margin-bottom:.9rem}
+  h1{font-size:1.9rem;line-height:1.35;font-weight:900;letter-spacing:.01em;text-wrap:balance}
+  .lead{color:var(--ink-soft);margin-top:1rem;font-size:.97rem}
+
+  .card{
+    background:var(--panel);border:1px solid var(--rule);border-radius:10px;
+    padding:1.4rem 1.3rem;margin-top:1.6rem;
+  }
+  .card h2{font-size:1.02rem;font-weight:700;margin-bottom:.6rem}
+  .prize{font-family:"Zen Old Mincho",serif;font-size:1.25rem;font-weight:600;line-height:1.5}
+  .note{font-size:.86rem;color:var(--muted);margin-top:.5rem}
+
+  ol.cond{list-style:none;counter-reset:c;display:flex;flex-direction:column;gap:.8rem;margin-top:.4rem}
+  ol.cond li{counter-increment:c;display:grid;grid-template-columns:1.5rem 1fr;gap:.7rem;align-items:start;font-size:.94rem}
+  ol.cond li::before{
+    content:counter(c);width:1.5rem;height:1.5rem;border-radius:50%;
+    background:var(--accent);color:#fff;font-size:.78rem;font-weight:700;
+    display:flex;align-items:center;justify-content:center;margin-top:.18rem;
+  }
+
+  .agree{display:flex;gap:.7rem;align-items:flex-start;margin-top:1.4rem;font-size:.9rem;color:var(--ink-soft)}
+  .agree input{width:1.15rem;height:1.15rem;margin-top:.25rem;flex:none;accent-color:var(--accent)}
+  .agree a{color:var(--accent-deep)}
+
+  button.go{
+    display:block;width:100%;margin-top:1.3rem;padding:1.05rem 1rem;
+    background:var(--accent);color:#fff;border:none;border-radius:8px;
+    font-size:1.05rem;font-weight:700;font-family:inherit;cursor:pointer;
+    letter-spacing:.04em;
+  }
+  button.go:disabled{background:#c8c4bc;cursor:not-allowed}
+  button.go:focus-visible{outline:3px solid var(--accent-deep);outline-offset:2px}
+
+  .result{text-align:center;padding:2.2rem 1.3rem}
+  .result .big{font-family:"Zen Old Mincho",serif;font-size:2.1rem;font-weight:900;line-height:1.35}
+  .result .big.win{color:var(--win)}
+  .result .sub{color:var(--ink-soft);margin-top:.9rem;font-size:.97rem}
+  .prizebox{
+    margin-top:1.4rem;background:#fffdf5;border:1px solid #e8dcae;border-radius:8px;padding:1.1rem;
+    text-align:left;
+  }
+  .prizebox b{display:block;font-size:.85rem;color:var(--warn);margin-bottom:.5rem}
+  .prizebox a{font-size:.92rem;word-break:break-all;color:var(--accent-deep)}
+
+  .msg{background:var(--warn-pale);border:1px solid #f0dcc0;border-radius:8px;
+       padding:.9rem 1rem;margin-top:1.4rem;font-size:.9rem;color:#6b4410}
+
+  details{margin-top:1.6rem;border-top:1px solid var(--rule);padding-top:1rem}
+  summary{cursor:pointer;font-size:.9rem;font-weight:700;color:var(--ink-soft)}
+  details pre{
+    white-space:pre-wrap;font-family:inherit;font-size:.83rem;color:var(--muted);
+    margin-top:.9rem;line-height:1.85;
+  }
+  footer{margin-top:2.6rem;text-align:center;font-size:.74rem;color:var(--muted);letter-spacing:.04em}
+  footer a{color:var(--muted)}
+  .hidden{display:none!important}
+  .spin{
+    width:1.4rem;height:1.4rem;border:2px solid var(--rule);border-top-color:var(--accent);
+    border-radius:50%;margin:2.5rem auto;animation:sp .8s linear infinite;
+  }
+  @keyframes sp{to{transform:rotate(360deg)}}
+  @media (prefers-reduced-motion:reduce){ .spin{animation:none} }
 </style>
 </head>
 <body>
-  <div class="box">
-    <div class="bar">
-      <span style="background:#c70025"></span><span style="background:#ee781f"></span>
-      <span style="background:#fabe00"></span><span style="background:#22ac38"></span>
-      <span style="background:#1bb8ce"></span><span style="background:#f19ec2"></span>
-      <span style="background:#915da3"></span>
+
+<div class="spectrum">
+  <i style="background:var(--c1)"></i><i style="background:var(--c2)"></i><i style="background:var(--c3)"></i>
+  <i style="background:var(--c4)"></i><i style="background:var(--c5)"></i><i style="background:var(--c6)"></i>
+  <i style="background:var(--c7)"></i>
+</div>
+
+<div class="wrap">
+  <div id="loading"><div class="spin"></div></div>
+  <div id="app" class="hidden"></div>
+
+  <footer>
+    <a href="https://www.asobuzz.net/">Asobuzz LLC</a>
+  </footer>
+</div>
+
+<script>
+const FN = "https://prnddzrnblfysggiuzmo.supabase.co/functions/v1/present";
+const SLUG = new URLSearchParams(location.search).get("c") || "nanairo";
+const qs = new URLSearchParams(location.search);
+const app = document.getElementById("app");
+const loading = document.getElementById("loading");
+
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) =>
+  ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+const ERRORS = {
+  agree: "お名前の公開に同意いただく必要があります。",
+  closed: "このキャンペーンは現在受け付けていません。",
+  notfound: "キャンペーンが見つかりませんでした。",
+  cancel: "Xでの連携がキャンセルされました。",
+  expired: "時間が経ちすぎたため、やり直してください。",
+  xauth: "Xとの連携がうまくいきませんでした。少し待ってからもう一度お試しください。",
+  server: "うまくいきませんでした。少し待ってからもう一度お試しください。",
+};
+
+function show(html, title) {
+  app.innerHTML = html;
+  loading.classList.add("hidden");
+  app.classList.remove("hidden");
+  if (title) document.title = title;
+}
+
+// ------------------------------------------------ 結果画面
+async function showResult(id, already) {
+  let r = null;
+  try {
+    const res = await fetch(FN + "/result?id=" + encodeURIComponent(id));
+    r = await res.json();
+  } catch (e) { /* 下で扱う */ }
+  if (!r || !r.ok) return show(`<div class="msg">結果を読み込めませんでした。時間をおいてお試しください。</div>` + againLink(), "結果");
+
+  if (already || r.result === "already_today") {
+    return show(`<div class="result">
+      <div class="big mincho">本日はもう応募済みです</div>
+      <p class="sub">応募は1日1回までです。<br>また明日、挑戦してください。</p>
+    </div>` + againLink(), "本日は応募済み");
+  }
+  if (r.result === "won") {
+    return show(`<div class="result">
+      <div class="big mincho win">当選しました</div>
+      <p class="sub">おめでとうございます、@${esc(r.name)} さん。<br>下のリンクから受け取ってください。</p>
+      ${r.prize ? `<div class="prizebox">
+        <b>受け取りリンク（このページを閉じる前に開いてください）</b>
+        <a href="${esc(r.prize)}" target="_blank" rel="noopener">${esc(r.prize)}</a>
+      </div>
+      <p class="sub" style="font-size:.86rem">同じ内容をXのダイレクトメッセージでもお送りします。</p>` : ""}
+    </div>`, "当選しました");
+  }
+  if (r.result === "not_qualified") {
+    const why = r.reason === "follow" ? "フォローが確認できませんでした。"
+      : r.reason === "repost" ? "リポストが確認できませんでした。"
+      : "条件の確認ができませんでした。";
+    return show(`<div class="result">
+      <div class="big mincho">条件が確認できませんでした</div>
+      <p class="sub">${why}<br>フォローとリポストをご確認のうえ、また明日お試しください。</p>
+    </div>` + againLink(), "条件が確認できませんでした");
+  }
+  return show(`<div class="result">
+    <div class="big mincho">ざんねん、ハズレです</div>
+    <p class="sub">またのご参加をお待ちしています。<br>応募は1日1回、毎日できます。</p>
+  </div>` + againLink(), "ざんねん");
+}
+
+const againLink = () =>
+  `<p style="text-align:center;margin-top:1.6rem"><a href="/?c=${esc(SLUG)}" style="color:var(--accent-deep);font-size:.9rem">応募ページへ戻る</a></p>`;
+
+// ------------------------------------------------ 応募画面
+async function showEntry() {
+  let c = null;
+  try {
+    const res = await fetch(FN + "/campaign?c=" + encodeURIComponent(SLUG));
+    c = await res.json();
+  } catch (e) { /* 下で扱う */ }
+  if (!c || !c.ok) return show(`<div class="msg">キャンペーンが見つかりませんでした。</div>`, "見つかりません");
+
+  const err = qs.get("e");
+  const closed = c.state !== "open";
+  const closedMsg = c.state === "before" ? "まもなく開始します。"
+    : c.state === "after" ? "このキャンペーンは終了しました。" : "現在受け付けていません。";
+
+  show(`
+    <p class="eyebrow">PRESENT CAMPAIGN</p>
+    <h1 class="mincho">${esc(c.title)}</h1>
+    <p class="lead">フォローとリポストで、その場で当たります。</p>
+
+    ${err ? `<div class="msg">${esc(ERRORS[err] || "うまくいきませんでした。")}</div>` : ""}
+    ${closed ? `<div class="msg">${closedMsg}</div>` : ""}
+
+    <div class="card">
+      <h2>賞品</h2>
+      <p class="prize">${esc(c.prizeName)}</p>
+      ${c.prizeNote ? `<p class="note">${esc(c.prizeNote)}</p>` : ""}
+      <p class="note">1日${c.winsPerDay}名様</p>
     </div>
-    <h1>準備中です</h1>
-    <p>このページはまだ公開されていません。</p>
-    <div class="rule"><p>AsobuzZ</p></div>
-  </div>
+
+    <div class="card">
+      <h2>応募のしかた</h2>
+      <ol class="cond">
+        <li>Xで主催アカウントをフォロー</li>
+        <li>対象の投稿をリポスト</li>
+        <li>下のボタンを押して、その場で結果を確認</li>
+      </ol>
+    </div>
+
+    ${c.publishWinners ? `
+    <label class="agree">
+      <input type="checkbox" id="agree">
+      <span>当選した場合、Xのユーザー名が発表投稿で公開されることに同意します。
+      個人情報の取り扱いは<a href="https://www.asobuzz.net/%E8%A4%87%E8%A3%BD-%E3%82%B5%E3%82%A4%E3%83%88%E5%88%A9%E7%94%A8%E8%A6%8F%E7%B4%84" target="_blank" rel="noopener">プライバシーポリシー</a>をご確認ください。</span>
+    </label>` : ""}
+
+    <button class="go" id="go" ${closed ? "disabled" : ""}>Xでログインして抽選する</button>
+    <p class="note" style="text-align:center">パスワードをこちらが預かることはありません。</p>
+
+    ${c.terms ? `<details><summary>応募要項を読む</summary><pre>${esc(c.terms)}</pre></details>` : ""}
+  `, c.title);
+
+  const go = document.getElementById("go");
+  const agree = document.getElementById("agree");
+  if (go) go.addEventListener("click", () => {
+    if (agree && !agree.checked) {
+      const box = document.querySelector(".agree");
+      box.style.color = "var(--warn)";
+      agree.focus();
+      return;
+    }
+    go.disabled = true;
+    go.textContent = "Xへ移動しています…";
+    location.href = FN + "/start?c=" + encodeURIComponent(SLUG) + (agree ? "&agree=1" : "");
+  });
+}
+
+const rid = qs.get("r");
+if (rid) showResult(rid, qs.get("s") === "already");
+else showEntry();
+</script>
 </body>
 </html>
