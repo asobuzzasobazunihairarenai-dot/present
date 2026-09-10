@@ -27,10 +27,10 @@
   .wrap{max-width:34rem;margin:0 auto;padding-top:2.6rem}
   .mincho{font-family:"Zen Old Mincho",serif}
 
-  /* ロゴは多色（濃紺〜白まで入る）ので、必ず白地に置く。青地に直接置くと白い縁が溶ける */
-  .logobox{background:#fff;border-radius:12px;padding:1.1rem 1.4rem;margin-bottom:1.6rem;
-    box-shadow:0 2px 10px rgba(5,60,62,.12);text-align:center}
-  .logobox img{display:block;width:100%;max-width:15rem;height:auto;margin:0 auto}
+  /* ロゴは背景を抜いた版（removebg）を使い、青地に直接置く。
+     白地を焼き込んだ版を使うと、透過していないので白い四角が出る */
+  .logobox{margin-bottom:1.6rem;text-align:center}
+  .logobox img{display:block;width:100%;max-width:17rem;height:auto;margin:0 auto}
   .kv{display:block;width:100%;height:auto;border-radius:8px;margin-bottom:.9rem}
   .eyebrow{font-size:.72rem;letter-spacing:.24em;color:var(--accent-deep);font-weight:700;margin-bottom:.9rem}
   h1{font-size:1.9rem;line-height:1.35;font-weight:900;letter-spacing:.01em;text-wrap:balance}
@@ -230,7 +230,7 @@ async function showEntry() {
     : "現在受け付けていません。";
 
   show(`
-    <div class="logobox"><img src="img/logo.webp" width="900" height="600" alt="7 SHADES OF S:EVEN"></div>
+    <div class="logobox"><img src="img/logo.webp" width="600" height="400" alt="7 SHADES OF S:EVEN"></div>
     <p class="eyebrow">PRESENT CAMPAIGN</p>
     <h1 class="mincho">${esc(c.title)}</h1>
     <p class="lead">フォローとリポストで、その場で当たります。</p>
