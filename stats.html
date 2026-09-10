@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>キャンペーンの記録</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Old+Mincho:wght@600;900&family=Noto+Sans+JP:wght@400;500;700&display=swap">
+<style>
+  :root{
+    --paper:#8fd8d2; --panel:#fff; --ink:#0d2b2c; --ink-soft:#2c4c4d; --muted:#4f6f70;
+    --rule:#d8ecea; --accent:#0a7d80; --accent-deep:#05585c; --accent-pale:#e4f4f2;
+    --gold:#a9791a; --on-paper:#0a2a2b; --on-paper-soft:#1f4749;
+    --c1:#c70025; --c2:#ee781f; --c3:#fabe00; --c4:#22ac38; --c5:#1bb8ce; --c6:#f19ec2; --c7:#915da3;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    background:var(--paper); color:var(--ink); min-height:100vh;
+    font-family:"Noto Sans JP","Hiragino Sans","Yu Gothic UI",system-ui,sans-serif;
+    line-height:1.8; padding:0 1.1rem 4rem;
+  }
+  .spectrum{display:flex;gap:2px;height:6px;margin:0 -1.1rem}
+  .spectrum i{flex:1}
+  .wrap{max-width:56rem;margin:0 auto;padding-top:2.2rem}
+  .mincho{font-family:"Zen Old Mincho",serif}
+
+  header{margin-bottom:1.6rem}
+  .eyebrow{font-size:.72rem;letter-spacing:.24em;color:var(--accent-deep);font-weight:700}
+  h1{font-size:1.7rem;font-weight:900;color:var(--on-paper);margin-top:.5rem;line-height:1.35}
+  .sub{color:var(--on-paper-soft);font-size:.88rem;margin-top:.5rem}
+  .state{display:inline-block;padding:.1rem .6rem;border-radius:2rem;font-size:.74rem;
+    font-weight:700;background:var(--panel);color:var(--accent-deep);margin-left:.5rem;vertical-align:.1rem}
+
+  .card{background:var(--panel);border-radius:10px;padding:1.3rem 1.3rem;margin-top:1.2rem}
+  .card h2{font-size:.98rem;font-weight:700;margin-bottom:.2rem}
+  .card .hint{font-size:.78rem;color:var(--muted);margin-bottom:1rem;line-height:1.7}
+
+  /* 流れ（見た人がどこまで進んだか） */
+  .funnel{display:flex;flex-direction:column;gap:.55rem}
+  .step{display:grid;grid-template-columns:9rem 1fr auto;gap:.8rem;align-items:center}
+  .step .name{font-size:.86rem;color:var(--ink-soft);text-align:right}
+  .step .track{height:1.5rem;display:flex;align-items:center}
+  .step .bar{height:.9rem;border-radius:0 4px 4px 0;background:var(--accent);min-width:2px}
+  .step.is-won .bar{background:var(--gold)}
+  .step .num{font-family:"Zen Old Mincho",serif;font-size:1.05rem;font-variant-numeric:tabular-nums;
+    min-width:4.2rem;text-align:right}
+  .step .rate{font-size:.74rem;color:var(--muted);margin-left:.4rem}
+  @media (max-width:620px){
+    .step{grid-template-columns:1fr auto;gap:.2rem .6rem}
+    .step .name{text-align:left;grid-column:1/-1}
+  }
+
+  /* 数字タイル */
+  .tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--rule);
+    border:1px solid var(--rule);border-radius:8px;overflow:hidden;margin-top:1.2rem}
+  .tile{background:var(--panel);padding:1rem .9rem}
+  .tile .k{font-size:.72rem;color:var(--muted);font-weight:500}
+  .tile .v{font-family:"Zen Old Mincho",serif;font-size:1.6rem;font-weight:600;line-height:1.3;
+    font-variant-numeric:tabular-nums;color:var(--accent-deep);margin-top:.15rem}
+  .tile.is-gold .v{color:var(--gold)}
+  @media (max-width:620px){ .tiles{grid-template-columns:repeat(2,1fr)} }
+
+  /* 表 */
+  table{width:100%;border-collapse:collapse;font-size:.86rem}
+  th,td{padding:.5rem .4rem;text-align:right;font-variant-numeric:tabular-nums}
+  th:first-child,td:first-child{text-align:left}
+  thead th{font-size:.74rem;color:var(--muted);font-weight:700;border-bottom:1px solid var(--rule)}
+  tbody tr{border-bottom:1px solid var(--rule)}
+  tbody tr:last-child{border-bottom:0}
+  td .cell{display:flex;align-items:center;justify-content:flex-end;gap:.5rem}
+  td .minibar{height:.55rem;border-radius:2px;background:var(--accent-pale);flex:none}
+  td .minibar i{display:block;height:100%;border-radius:2px;background:var(--accent)}
+  .tblwrap{overflow-x:auto}
+
+  /* 時間帯 */
+  .hours{display:grid;grid-template-columns:repeat(24,1fr);gap:2px;align-items:end;height:8rem;margin-top:.4rem}
+  .hours .h{background:var(--accent);border-radius:2px 2px 0 0;min-height:2px;position:relative}
+  .hours .h.zero{background:var(--rule)}
+  .hourlabels{display:grid;grid-template-columns:repeat(24,1fr);gap:2px;margin-top:.35rem;
+    font-size:.62rem;color:var(--muted);text-align:center;font-variant-numeric:tabular-nums}
+  .hourlabels span{overflow:hidden}
+  .legend{display:flex;gap:1rem;font-size:.76rem;color:var(--muted);margin-top:.8rem;flex-wrap:wrap}
+  .legend b{display:inline-block;width:.7rem;height:.7rem;border-radius:2px;margin-right:.35rem;vertical-align:-.05rem}
+
+  .foot{margin-top:1.6rem;text-align:center;font-size:.76rem;color:var(--on-paper-soft)}
+  .foot button{font:inherit;font-size:.76rem;border:1px solid var(--accent-deep);background:transparent;
+    color:var(--accent-deep);border-radius:2rem;padding:.15rem .8rem;cursor:pointer;margin-left:.5rem}
+  .msg{background:var(--panel);border-radius:10px;padding:1.6rem 1.3rem;margin-top:1.6rem;
+    text-align:center;color:var(--ink-soft)}
+  .spin{width:1.4rem;height:1.4rem;border:2px solid var(--rule);border-top-color:var(--accent);
+    border-radius:50%;margin:3rem auto;animation:sp .8s linear infinite}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  @media (prefers-reduced-motion:reduce){ .spin{animation:none} }
+</style>
+</head>
+<body>
+<div class="spectrum">
+  <i style="background:var(--c1)"></i><i style="background:var(--c2)"></i><i style="background:var(--c3)"></i>
+  <i style="background:var(--c4)"></i><i style="background:var(--c5)"></i><i style="background:var(--c6)"></i>
+  <i style="background:var(--c7)"></i>
+</div>
+<div class="wrap" id="root"><div class="spin"></div></div>
+
+<script>
+const FN = "https://prnddzrnblfysggiuzmo.supabase.co/functions/v1/present";
+const qs = new URLSearchParams(location.search);
+const KEY = qs.get("key") || "";
+const SLUG = qs.get("c") || "nanairo";
+const root = document.getElementById("root");
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c]));
+const n = (v) => Number(v || 0).toLocaleString("ja-JP");
+const jst = (t) => new Date(t).toLocaleString("ja-JP", { timeZone:"Asia/Tokyo", month:"numeric", day:"numeric", hour:"2-digit", minute:"2-digit" });
+const md = (d) => { const [, m, dd] = String(d).split("-"); return Number(m) + "/" + Number(dd); };
+
+function bar(value, max, cls) {
+  const w = max > 0 ? Math.max(2, Math.round((value / max) * 100)) : 0;
+  return '<div class="bar ' + (cls || "") + '" style="width:' + w + '%"></div>';
+}
+
+function render(d) {
+  const c = d.campaign || {};
+  const t = d.totals || {};
+  const now = Date.now();
+  const state = !c.enabled ? "停止中"
+    : now < Date.parse(c.startsAt) ? "開始前"
+    : now > Date.parse(c.endsAt) ? "終了"
+    : "受付中";
+
+  // 流れ：ページを開いた → ログインへ進んだ → 応募した → 当選
+  const steps = [
+    { name:"ページを開いた", v:t.views },
+    { name:"ログインへ進んだ", v:t.starts },
+    { name:"応募した", v:t.entries },
+    { name:"当選した", v:t.won, gold:true },
+  ];
+  const top = Math.max(1, ...steps.map((s) => Number(s.v || 0)));
+  const funnel = steps.map((s, i) => {
+    const prev = i === 0 ? null : Number(steps[i-1].v || 0);
+    const rate = prev && prev > 0 ? Math.round((Number(s.v||0) / prev) * 100) + "%" : "";
+    return '<div class="step' + (s.gold ? " is-won" : "") + '">'
+      + '<div class="name">' + s.name + '</div>'
+      + '<div class="track">' + bar(Number(s.v||0), top) + '</div>'
+      + '<div class="num">' + n(s.v) + (rate ? '<span class="rate">' + rate + '</span>' : "") + '</div>'
+      + '</div>';
+  }).join("");
+
+  // 日ごと
+  const daily = d.daily || [];
+  const dmax = Math.max(1, ...daily.map((x) => Number(x.views || 0)));
+  const rows = daily.map((x) => {
+    const w = Math.round((Number(x.views||0) / dmax) * 100);
+    return "<tr><td>" + md(x.day) + "</td>"
+      + '<td><div class="cell"><span class="minibar" style="width:5rem"><i style="width:' + w + '%"></i></span>'
+      + n(x.views) + "</div></td>"
+      + "<td>" + n(x.starts) + "</td><td>" + n(x.entries) + "</td>"
+      + "<td>" + n(x.not_qualified) + "</td><td>" + n(x.won) + "</td></tr>";
+  }).join("");
+
+  // 時間帯（全期間を合算）
+  const byHour = Array.from({ length: 24 }, () => ({ views:0, entries:0 }));
+  for (const h of (d.hourly || [])) {
+    const i = Number(h.hour);
+    if (i >= 0 && i < 24) { byHour[i].views += Number(h.views||0); byHour[i].entries += Number(h.entries||0); }
+  }
+  const hvMax = Math.max(1, ...byHour.map((h) => h.views));
+  const heMax = Math.max(1, ...byHour.map((h) => h.entries));
+  const hourBars = (key, max, color) => byHour.map((h, i) => {
+    const v = h[key];
+    const pct = max > 0 ? (v / max) * 100 : 0;
+    return '<div class="h' + (v === 0 ? " zero" : "") + '" title="' + i + '時 ' + v + '" '
+      + 'style="height:' + Math.max(v === 0 ? 2 : 6, pct) + '%;background:' + (v === 0 ? "" : color) + '"></div>';
+  }).join("");
+  const hourLabels = Array.from({ length: 24 }, (_, i) => "<span>" + (i % 3 === 0 ? i : "") + "</span>").join("");
+
+  const reasons = (d.reasons || []).map((r) => {
+    const label = { follow:"フォロー未確認", repost:"リポスト未検出", check_failed:"Xが応答せず", no_prize_left:"賞品切れ" }[r.reason] || r.reason;
+    return "<tr><td>" + esc(label) + "</td><td>" + n(r.count) + "</td></tr>";
+  }).join("");
+
+  root.innerHTML =
+    '<header>'
+    + '<p class="eyebrow">CAMPAIGN DASHBOARD</p>'
+    + '<h1 class="mincho">' + esc(c.title || "キャンペーン") + '<span class="state">' + state + "</span></h1>"
+    + '<p class="sub">' + jst(c.startsAt) + " 〜 " + jst(c.endsAt) + " ／ 1日" + n(c.winsPerDay) + "名様</p>"
+    + "</header>"
+
+    + '<div class="tiles">'
+    + '<div class="tile"><div class="k">ページを開いた</div><div class="v">' + n(t.views) + "</div></div>"
+    + '<div class="tile"><div class="k">応募</div><div class="v">' + n(t.entries) + "</div></div>"
+    + '<div class="tile is-gold"><div class="k">当選</div><div class="v">' + n(t.won) + "</div></div>"
+    + '<div class="tile"><div class="k">残りの賞品</div><div class="v">' + n(t.prizesLeft) + "</div></div>"
+    + "</div>"
+
+    + '<div class="card"><h2>どこまで進んだか</h2>'
+    + '<p class="hint">右の小さい数字は、ひとつ上の段からどれだけ進んだかの割合です。落ちている段が改善点になります。</p>'
+    + '<div class="funnel">' + funnel + "</div></div>"
+
+    + '<div class="card"><h2>時間帯ごと（全期間の合計・日本時間）</h2>'
+    + '<p class="hint">当たり時刻は毎日10〜23時のどこかに置いています。人が来ない時間帯に置かれていないかを見るための図です。</p>'
+    + '<div class="hours">' + hourBars("views", hvMax, "var(--accent)") + "</div>"
+    + '<div class="hourlabels">' + hourLabels + "</div>"
+    + '<div class="legend"><span><b style="background:var(--accent)"></b>ページを開いた（最大 ' + n(hvMax) + "）</span></div>"
+    + '<div class="hours" style="height:5rem;margin-top:1.2rem">' + hourBars("entries", heMax, "var(--c7)") + "</div>"
+    + '<div class="hourlabels">' + hourLabels + "</div>"
+    + '<div class="legend"><span><b style="background:var(--c7)"></b>応募（最大 ' + n(heMax) + "）</span></div></div>"
+
+    + '<div class="card"><h2>日ごと</h2><div class="tblwrap"><table>'
+    + "<thead><tr><th>日</th><th>開いた</th><th>進んだ</th><th>応募</th><th>条件未達</th><th>当選</th></tr></thead>"
+    + "<tbody>" + (rows || '<tr><td colspan="6">まだ記録がありません</td></tr>') + "</tbody></table></div></div>"
+
+    + (reasons
+        ? '<div class="card"><h2>当選に至らなかった理由</h2>'
+          + '<p class="hint">「リポスト未検出」は、応募者の直近15件にリポストが見つからなかった場合です。多ければ読む件数を増やす判断材料になります。</p>'
+          + '<div class="tblwrap"><table><thead><tr><th>理由</th><th>件数</th></tr></thead><tbody>'
+          + reasons + "</tbody></table></div></div>"
+        : "")
+
+    + '<p class="foot">最終更新 ' + new Date().toLocaleTimeString("ja-JP", { timeZone:"Asia/Tokyo" })
+    + '<button onclick="load()">更新</button></p>';
+}
+
+async function load() {
+  if (!KEY) {
+    root.innerHTML = '<div class="msg">合言葉が必要です。<br>URLの末尾に <code>?key=…</code> を付けて開いてください。</div>';
+    return;
+  }
+  try {
+    const res = await fetch(FN + "/stats?key=" + encodeURIComponent(KEY) + "&c=" + encodeURIComponent(SLUG));
+    const d = await res.json();
+    if (!d || !d.ok) {
+      root.innerHTML = '<div class="msg">読み込めませんでした。合言葉が違うか、まだ準備ができていません。</div>';
+      return;
+    }
+    render(d);
+  } catch (e) {
+    root.innerHTML = '<div class="msg">通信できませんでした。時間をおいてお試しください。</div>';
+  }
+}
+load();
+setInterval(load, 60000);   // 1分ごとに自動で更新
+</script>
+</body>
+</html>
