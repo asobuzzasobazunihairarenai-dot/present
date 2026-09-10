@@ -208,7 +208,8 @@ const againLink = () =>
 async function showEntry() {
   let c = null;
   try {
-    const res = await fetch(FN + "/campaign?c=" + encodeURIComponent(SLUG));
+    // v=1 は「応募ページが開かれた」という印。これが無い呼び出し（状態確認など）は数えない
+    const res = await fetch(FN + "/campaign?c=" + encodeURIComponent(SLUG) + "&v=1");
     c = await res.json();
   } catch (e) { /* 下で扱う */ }
   if (!c || !c.ok) return show(`<div class="msg">キャンペーンが見つかりませんでした。</div>`, "見つかりません");
