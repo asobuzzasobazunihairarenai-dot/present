@@ -79,6 +79,10 @@
     white-space:pre-wrap;font-family:inherit;font-size:.83rem;color:var(--muted);
     margin-top:.9rem;line-height:1.85;
   }
+  .about{margin-top:1.8rem;padding:.9rem 1rem;border:1px solid var(--rule);border-radius:.6rem;font-size:.8rem;color:var(--muted);line-height:1.7}
+  .about b{display:block;margin-bottom:.35rem;color:var(--ink);font-weight:600}
+  .about p{margin:.2rem 0}
+  .footer-sub{margin-top:.4rem;font-size:.7rem}
   footer{margin-top:2.6rem;text-align:center;font-size:.74rem;color:var(--muted);letter-spacing:.04em}
   footer a{color:var(--muted)}
   .hidden{display:none!important}
@@ -104,6 +108,7 @@
 
   <footer>
     <a href="https://www.asobuzz.net/">Asobuzz LLC</a>
+    <div class="footer-sub">抽選システム制作：Asobuzz LLC ／ ご相談は <a href="https://x.com/7shadesofseven" target="_blank" rel="noopener">@7shadesofseven</a></div>
   </footer>
 </div>
 
@@ -189,8 +194,19 @@ async function showEntry() {
 
   const err = qs.get("e");
   const closed = c.state !== "open";
-  const closedMsg = c.state === "before" ? "まもなく開始します。"
-    : c.state === "after" ? "このキャンペーンは終了しました。" : "現在受け付けていません。";
+  // 開始前は「いつから」まで出す。告知を先に出す運用なので、
+  // 「まもなく」だけだと、いつ来ればいいのか分からないまま帰ってしまう
+  let startTxt = "";
+  try {
+    startTxt = new Date(c.startsAt).toLocaleString("ja-JP",
+      { timeZone: "Asia/Tokyo", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" });
+  } catch (e) { /* 出せなければ従来の文言のまま */ }
+  const notStartedYet = !!startTxt && !!c.startsAt && Date.now() < Date.parse(c.startsAt);
+  const closedMsg =
+      c.state === "after" ? "このキャンペーンは終了しました。"
+    : notStartedYet ? startTxt + " から受け付けます。"
+    : c.state === "before" ? "まもなく開始します。"
+    : "現在受け付けていません。";
 
   show(`
     <p class="eyebrow">PRESENT CAMPAIGN</p>
@@ -220,6 +236,7 @@ async function showEntry() {
     <label class="agree">
       <input type="checkbox" id="agree">
       <span>当選した場合、Xのユーザー名が発表投稿で公開されることに同意します。
+      また、AsobuzZ からキャンペーンや新作のお知らせをお送りする場合があります。
       個人情報の取り扱いは<a href="https://www.asobuzz.net/%E8%A4%87%E8%A3%BD-%E3%82%B5%E3%82%A4%E3%83%88%E5%88%A9%E7%94%A8%E8%A6%8F%E7%B4%84" target="_blank" rel="noopener">プライバシーポリシー</a>をご確認ください。</span>
     </label>` : ""}
 
@@ -227,6 +244,12 @@ async function showEntry() {
     <p class="note" style="text-align:center">パスワードをこちらが預かることはありません。</p>
 
     ${c.terms ? `<details><summary>応募要項を読む</summary><pre>${esc(c.terms)}</pre></details>` : ""}
+
+    <div class="about">
+      <b>⚙ このページについて</b>
+      <p>フォローとリポストの確認から抽選・賞品のお渡しまで、すべて自動で行っています。外部のキャンペーンサービスは使っていません。</p>
+      <p>同じ仕組みでキャンペーンを行いたい方は <a href="https://x.com/7shadesofseven" target="_blank" rel="noopener">@7shadesofseven</a> までお気軽にどうぞ。</p>
+    </div>
   `, c.title);
 
   const go = document.getElementById("go");
