@@ -10,8 +10,9 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Old+Mincho:wght@600;900&family=Noto+Sans+JP:wght@400;500;700&display=swap">
 <style>
   :root{
-    --paper:#faf9f6; --panel:#fff; --ink:#1c1b22; --ink-soft:#43414e; --muted:#75727f;
-    --rule:#e6e2db; --accent:#1f7f92; --accent-deep:#155e6d;
+    --paper:#8fd8d2; --panel:#fff; --ink:#0d2b2c; --ink-soft:#2c4c4d; --muted:#4f6f70;
+    --rule:#d8ecea; --accent:#0a7d80; --accent-deep:#05585c;
+    --on-paper:#0a2a2b; --on-paper-soft:#1f4749;   /* 青地の上に直接置く文字 */
     --win:#b8860b; --warn:#a8560c; --warn-pale:#fdf3e6;
     --c1:#c70025; --c2:#ee781f; --c3:#fabe00; --c4:#22ac38; --c5:#1bb8ce; --c6:#f19ec2; --c7:#915da3;
   }
@@ -26,9 +27,16 @@
   .wrap{max-width:34rem;margin:0 auto;padding-top:2.6rem}
   .mincho{font-family:"Zen Old Mincho",serif}
 
+  /* ロゴは多色（濃紺〜白まで入る）ので、必ず白地に置く。青地に直接置くと白い縁が溶ける */
+  .logobox{background:#fff;border-radius:12px;padding:1.1rem 1.4rem;margin-bottom:1.6rem;
+    box-shadow:0 2px 10px rgba(5,60,62,.12);text-align:center}
+  .logobox img{display:block;width:100%;max-width:15rem;height:auto;margin:0 auto}
+  .kv{display:block;width:100%;height:auto;border-radius:8px;margin-bottom:.9rem}
   .eyebrow{font-size:.72rem;letter-spacing:.24em;color:var(--accent-deep);font-weight:700;margin-bottom:.9rem}
   h1{font-size:1.9rem;line-height:1.35;font-weight:900;letter-spacing:.01em;text-wrap:balance}
-  .lead{color:var(--ink-soft);margin-top:1rem;font-size:.97rem}
+  .lead{color:var(--on-paper-soft);margin-top:1rem;font-size:.97rem}
+  .eyebrow{color:var(--accent-deep)}
+  h1{color:var(--on-paper)}
 
   .card{
     background:var(--panel);border:1px solid var(--rule);border-radius:10px;
@@ -46,7 +54,11 @@
     display:flex;align-items:center;justify-content:center;margin-top:.18rem;
   }
 
-  .agree{display:flex;gap:.7rem;align-items:flex-start;margin-top:1.4rem;font-size:.9rem;color:var(--ink-soft)}
+  /* 番号は7色から取る。白文字が乗るので黄は使わない */
+  ol.cond li:nth-child(1)::before{background:var(--c1)}
+  ol.cond li:nth-child(2)::before{background:var(--c4)}
+  ol.cond li:nth-child(3)::before{background:var(--c7)}
+  .agree{display:flex;gap:.7rem;align-items:flex-start;margin-top:1.4rem;font-size:.9rem;color:var(--on-paper-soft)}
   .agree input{width:1.15rem;height:1.15rem;margin-top:.25rem;flex:none;accent-color:var(--accent)}
   .agree a{color:var(--accent-deep)}
 
@@ -62,6 +74,7 @@
   .result{text-align:center;padding:2.2rem 1.3rem}
   .result .big{font-family:"Zen Old Mincho",serif;font-size:2.1rem;font-weight:900;line-height:1.35}
   .result .big.win{color:var(--win)}
+  .result{background:#fff;border-radius:10px;margin-top:1.6rem}
   .result .sub{color:var(--ink-soft);margin-top:.9rem;font-size:.97rem}
   .prizebox{
     margin-top:1.4rem;background:#fffdf5;border:1px solid #e8dcae;border-radius:8px;padding:1.1rem;
@@ -80,16 +93,16 @@
     margin-top:.9rem;line-height:1.85;
   }
   .offer{margin-top:1.4rem;padding:1rem 1.1rem;border:1px solid var(--accent);
-    border-radius:.6rem;background:#eef5f6;font-size:.86rem;line-height:1.8}
+    border-radius:.6rem;background:#fff;font-size:.86rem;line-height:1.8}
   .offer b{display:block;margin-bottom:.4rem;color:var(--accent-deep);font-size:.94rem}
   .offer p{margin:.25rem 0}
   .offer .fine{font-size:.78rem;color:var(--muted)}
-  .about{margin-top:1.8rem;padding:.9rem 1rem;border:1px solid var(--rule);border-radius:.6rem;font-size:.8rem;color:var(--muted);line-height:1.7}
+  .about{margin-top:1.8rem;padding:.9rem 1rem;background:rgba(255,255,255,.72);border:1px solid var(--rule);border-radius:.6rem;font-size:.8rem;color:var(--muted);line-height:1.7}
   .about b{display:block;margin-bottom:.35rem;color:var(--ink);font-weight:600}
   .about p{margin:.2rem 0}
   .footer-sub{margin-top:.4rem;font-size:.7rem}
-  footer{margin-top:2.6rem;text-align:center;font-size:.74rem;color:var(--muted);letter-spacing:.04em}
-  footer a{color:var(--muted)}
+  footer{margin-top:2.6rem;text-align:center;font-size:.74rem;color:var(--on-paper-soft);letter-spacing:.04em}
+  footer a{color:var(--on-paper-soft)}
   .hidden{display:none!important}
   .spin{
     width:1.4rem;height:1.4rem;border:2px solid var(--rule);border-top-color:var(--accent);
@@ -217,6 +230,7 @@ async function showEntry() {
     : "現在受け付けていません。";
 
   show(`
+    <div class="logobox"><img src="img/logo.webp" width="900" height="600" alt="7 SHADES OF S:EVEN"></div>
     <p class="eyebrow">PRESENT CAMPAIGN</p>
     <h1 class="mincho">${esc(c.title)}</h1>
     <p class="lead">フォローとリポストで、その場で当たります。</p>
@@ -226,6 +240,7 @@ async function showEntry() {
 
     <div class="card">
       <h2>賞品</h2>
+      <img class="kv" src="img/keyvisual.webp" width="900" height="900" alt="ユドナリウムコネクト版の盤面" loading="lazy">
       <p class="prize">${esc(c.prizeName)}</p>
       ${c.prizeNote ? `<p class="note">${esc(c.prizeNote)}</p>` : ""}
       <p class="note">1日${c.winsPerDay}名様</p>
