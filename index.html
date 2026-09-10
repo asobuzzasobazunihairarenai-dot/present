@@ -79,6 +79,11 @@
     white-space:pre-wrap;font-family:inherit;font-size:.83rem;color:var(--muted);
     margin-top:.9rem;line-height:1.85;
   }
+  .offer{margin-top:1.4rem;padding:1rem 1.1rem;border:1px solid var(--accent);
+    border-radius:.6rem;background:#eef5f6;font-size:.86rem;line-height:1.8}
+  .offer b{display:block;margin-bottom:.4rem;color:var(--accent-deep);font-size:.94rem}
+  .offer p{margin:.25rem 0}
+  .offer .fine{font-size:.78rem;color:var(--muted)}
   .about{margin-top:1.8rem;padding:.9rem 1rem;border:1px solid var(--rule);border-radius:.6rem;font-size:.8rem;color:var(--muted);line-height:1.7}
   .about b{display:block;margin-bottom:.35rem;color:var(--ink);font-weight:600}
   .about p{margin:.2rem 0}
@@ -163,6 +168,7 @@ async function showResult(id, already) {
         <a href="${esc(r.prize)}" target="_blank" rel="noopener">${esc(r.prize)}</a>
       </div>
       <p class="sub" style="font-size:.86rem">受け取り期限はありません。閉じてしまった場合は @7shadesofseven のDMまでご連絡ください。</p>` : ""}
+    <p class="sub" style="font-size:.84rem">すでにご購入済みの方には、未発表の緑EDITION（テストプレイ中）をお渡しします。@7shadesofseven までDMでお知らせください。</p>
     </div>`, "当選しました");
   }
   if (r.result === "not_qualified") {
@@ -178,6 +184,7 @@ async function showResult(id, already) {
     <div class="big mincho">ざんねん、ハズレです</div>
     <p class="sub">またのご参加をお待ちしています。<br>応募は1日1回、毎日できます。</p>
     <p class="sub" style="font-size:.84rem">※フォロー・リポストがお済みでない場合は、条件を満たしていないため当選の対象外です。念のためご確認ください。</p>
+    <p class="sub" style="font-size:.84rem">ご購入いただいた方には、未発表の緑EDITION（テストプレイ中）をお渡ししています。@7shadesofseven までDMでお知らせください。</p>
   </div>` + againLink(), "ざんねん");
 }
 
@@ -231,6 +238,13 @@ async function showEntry() {
         <li>対象の投稿をリポスト</li>
         <li>下のボタンを押して、その場で結果を確認</li>
       </ol>
+    </div>
+
+    <div class="offer">
+      <b>🎁 ご購入済みの方へ</b>
+      <p>ユドナリウムコネクト版をご購入いただいた方には、未発表の<b style="display:inline">緑EDITION</b>（テストプレイ中）をお渡しします。キャンペーン期間中にご購入いただく方も対象です。</p>
+      <p><a href="https://x.com/7shadesofseven" target="_blank" rel="noopener">@7shadesofseven</a> までDMでお知らせください。</p>
+      <p class="fine">テストプレイ中のため、内容は変更される場合があります。お申し出は2026年9月24日（木）まで。</p>
     </div>
 
     ${c.publishWinners ? `
