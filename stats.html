@@ -53,7 +53,7 @@
   }
 
   /* 数字タイル */
-  .tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--rule);
+  .tiles{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--rule);
     border:1px solid var(--rule);border-radius:8px;overflow:hidden;margin-top:1.2rem}
   .tile{background:var(--panel);padding:1rem .9rem}
   .tile .k{font-size:.72rem;color:var(--muted);font-weight:500}
@@ -155,6 +155,7 @@ function render(d) {
       + '<td><div class="cell"><span class="minibar" style="width:5rem"><i style="width:' + w + '%"></i></span>'
       + n(x.views) + "</div></td>"
       + "<td>" + n(x.starts) + "</td><td>" + n(x.entries) + "</td>"
+      + "<td>" + n(x.new_people) + "</td><td>" + n(x.repeat_people) + "</td>"
       + "<td>" + n(x.not_qualified) + "</td><td>" + n(x.won) + "</td></tr>";
   }).join("");
 
@@ -188,7 +189,8 @@ function render(d) {
 
     + '<div class="tiles">'
     + '<div class="tile"><div class="k">ページを開いた</div><div class="v">' + n(t.views) + "</div></div>"
-    + '<div class="tile"><div class="k">応募</div><div class="v">' + n(t.entries) + "</div></div>"
+    + '<div class="tile"><div class="k">応募（のべ）</div><div class="v">' + n(t.entries) + "</div></div>"
+    + '<div class="tile"><div class="k">応募した実人数</div><div class="v">' + n(t.people) + "</div></div>"
     + '<div class="tile is-gold"><div class="k">当選</div><div class="v">' + n(t.won) + "</div></div>"
     + '<div class="tile"><div class="k">残りの賞品</div><div class="v">' + n(t.prizesLeft) + "</div></div>"
     + "</div>"
@@ -198,7 +200,7 @@ function render(d) {
     + '<div class="funnel">' + funnel + "</div></div>"
 
     + '<div class="card"><h2>時間帯ごと（全期間の合計・日本時間）</h2>'
-    + '<p class="hint">当たり時刻は毎日10〜23時のどこかに置いています。人が来ない時間帯に置かれていないかを見るための図です。</p>'
+    + '<p class="hint">当たり時刻は初日が21〜23時、2日目以降は19:10〜23時のどこかに置いています。人が来ない時間帯に置かれていないかを見るための図です。</p>'
     + '<div class="hours">' + hourBars("views", hvMax, "var(--accent)") + "</div>"
     + '<div class="hourlabels">' + hourLabels + "</div>"
     + '<div class="legend"><span><b style="background:var(--accent)"></b>ページを開いた（最大 ' + n(hvMax) + "）</span></div>"
@@ -207,8 +209,8 @@ function render(d) {
     + '<div class="legend"><span><b style="background:var(--c7)"></b>応募（最大 ' + n(heMax) + "）</span></div></div>"
 
     + '<div class="card"><h2>日ごと</h2><div class="tblwrap"><table>'
-    + "<thead><tr><th>日</th><th>開いた</th><th>進んだ</th><th>応募</th><th>条件未達</th><th>当選</th></tr></thead>"
-    + "<tbody>" + (rows || '<tr><td colspan="6">まだ記録がありません</td></tr>') + "</tbody></table></div></div>"
+    + "<thead><tr><th>日</th><th>開いた</th><th>進んだ</th><th>応募</th><th>新規</th><th>リピート</th><th>条件未達</th><th>当選</th></tr></thead>"
+    + "<tbody>" + (rows || '<tr><td colspan="8">まだ記録がありません</td></tr>') + "</tbody></table></div></div>"
 
     + (reasons
         ? '<div class="card"><h2>当選に至らなかった理由</h2>'
