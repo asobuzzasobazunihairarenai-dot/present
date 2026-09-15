@@ -175,6 +175,15 @@ function render(d) {
   }).join("");
   const hourLabels = Array.from({ length: 24 }, (_, i) => "<span>" + (i % 3 === 0 ? i : "") + "</span>").join("");
 
+  // 当選者（受け取れなかったとDMが来た時に、本人かを確かめる用）。リンクは末尾だけ返ってくる
+  const winners = (d.winners || []).map((w) => {
+    const name = String(w.username || "");
+    return "<tr><td>" + esc(jst(w.wonAt)) + "</td>"
+      + '<td><a href="https://x.com/' + encodeURIComponent(name) + '" target="_blank" rel="noopener">@' + esc(name) + "</a></td>"
+      + "<td>" + (w.agreed ? "同意あり" : "同意なし") + "</td>"
+      + "<td><code>…" + esc(w.codeTail) + "</code></td></tr>";
+  }).join("");
+
   const reasons = (d.reasons || []).map((r) => {
     const label = { follow:"フォロー未確認", repost:"リポスト未検出", check_failed:"Xが応答せず", no_prize_left:"賞品切れ" }[r.reason] || r.reason;
     return "<tr><td>" + esc(label) + "</td><td>" + n(r.count) + "</td></tr>";
@@ -211,6 +220,11 @@ function render(d) {
     + '<div class="card"><h2>日ごと</h2><div class="tblwrap"><table>'
     + "<thead><tr><th>日</th><th>開いた</th><th>進んだ</th><th>応募</th><th>新規</th><th>リピート</th><th>条件未達</th><th>当選</th></tr></thead>"
     + "<tbody>" + (rows || '<tr><td colspan="8">まだ記録がありません</td></tr>') + "</tbody></table></div></div>"
+
+    + '<div class="card"><h2>当選者</h2>'
+    + '<p class="hint">「受け取れなかった」とDMが来たら、DMの相手の@ユーザー名がこの一覧と完全に一致するかを確かめてから対応してください。受け取りリンクは安全のため末尾だけ表示しています（BOOTHのギフト管理と照らし合わせる目印）。リンク本体が必要な時は winners.sql を実行してください。</p>'
+    + '<div class="tblwrap"><table><thead><tr><th>当選日時</th><th>ユーザー名</th><th>名前の公開</th><th>リンクの末尾</th></tr></thead><tbody>'
+    + (winners || '<tr><td colspan="4">まだ当選者はいません</td></tr>') + "</tbody></table></div></div>"
 
     + (reasons
         ? '<div class="card"><h2>当選に至らなかった理由</h2>'
