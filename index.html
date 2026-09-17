@@ -272,15 +272,16 @@ async function showEntry() {
       <p class="fine">テストプレイ中のため、内容は変更される場合があります。お申し出は2026年9月24日（木）まで。</p>
     </div>
 
-    ${c.publishWinners ? `
+    ${(c.publishWinners && c.state !== "after") ? `
     <label class="agree">
       <input type="checkbox" id="agree">
       <span>当選した場合、Xのユーザー名が発表投稿で公開されることに同意します。
       個人情報の取り扱いは<a href="https://www.asobuzz.net/%E8%A4%87%E8%A3%BD-%E3%82%B5%E3%82%A4%E3%83%88%E5%88%A9%E7%94%A8%E8%A6%8F%E7%B4%84" target="_blank" rel="noopener">プライバシーポリシー</a>をご確認ください。</span>
     </label>` : ""}
 
+    ${c.state !== "after" ? `
     <button class="go" id="go" ${closed ? "disabled" : ""}>Xでログインして抽選する</button>
-    <p class="note" style="text-align:center">Xの公式画面でログインします。このアプリは読み取りのみで、投稿やDMはできません。</p>
+    <p class="note" style="text-align:center">Xの公式画面でログインします。このアプリは読み取りのみで、投稿やDMはできません。</p>` : ""}
 
     ${c.terms ? `<details><summary>応募要項を読む</summary><pre>${esc(c.terms)}</pre></details>` : ""}
 
