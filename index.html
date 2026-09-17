@@ -143,6 +143,7 @@ const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) =>
 const ERRORS = {
   agree: "お名前の公開に同意いただく必要があります。",
   closed: "このキャンペーンは現在受け付けていません。",
+  nowin: "このXアカウントでの当選の記録が見つかりませんでした。当選したアカウントでログインしているかご確認ください。",
   notfound: "キャンペーンが見つかりませんでした。",
   cancel: "Xでの連携がキャンセルされました。",
   expired: "時間が経ちすぎたため、やり直してください。",
@@ -239,6 +240,14 @@ async function showEntry() {
     ${err ? `<div class="msg">${esc(ERRORS[err] || "うまくいきませんでした。")}</div>` : ""}
     ${closed ? `<div class="msg">${closedMsg}</div>` : ""}
 
+    ${c.state === "after" ? `
+    <div class="offer">
+      <b>🎉 当選された方へ</b>
+      <p>受け取りリンクを、もう一度表示できます。当選したXアカウントでログインしてください。</p>
+      <button class="go" id="claim">Xでログインして受け取りリンクを表示</button>
+      <p class="fine">2026年9月30日（水）まで。当選した方ご本人にだけ表示されます。</p>
+    </div>` : ""}
+
     <div class="card">
       <h2>賞品</h2>
       <img class="kv" src="img/keyvisual.webp" width="900" height="900" alt="ユドナリウムコネクト版の盤面" loading="lazy">
@@ -281,6 +290,13 @@ async function showEntry() {
       <p>同じ仕組みでキャンペーンを行いたい方は <a href="https://x.com/7shadesofseven" target="_blank" rel="noopener">@7shadesofseven</a> までお気軽にどうぞ。</p>
     </div>
   `, c.title);
+
+  const claimBtn = document.getElementById("claim");
+  if (claimBtn) claimBtn.addEventListener("click", () => {
+    claimBtn.disabled = true;
+    claimBtn.textContent = "Xへ移動しています…";
+    location.href = FN + "/start?c=" + encodeURIComponent(SLUG) + "&claim=1";
+  });
 
   const go = document.getElementById("go");
   const agree = document.getElementById("agree");
