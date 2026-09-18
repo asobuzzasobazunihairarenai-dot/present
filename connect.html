@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Xアカウントの連携 | AsobuzZ プレゼント抽選</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap">
+<style>
+  :root{ --ground:#eef4f3; --panel:#fff; --ink:#14221f; --soft:#4a5a57; --muted:#6a7a77; --rule:#d9e3e1;
+         --accent:#0a7d80; --accent-deep:#075e61; --warn:#b3541e; --ok:#127a3c; }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--ground);color:var(--ink);font-family:"Noto Sans JP",system-ui,sans-serif;
+       line-height:1.8;padding-inline:16px;padding-block:48px}
+  main{max-width:520px;margin:0 auto;background:var(--panel);border:1px solid var(--rule);border-radius:14px;padding:28px 24px}
+  .eyebrow{font-size:12px;letter-spacing:.14em;color:var(--accent-deep);font-weight:700}
+  h1{font-size:22px;line-height:1.45;margin:6px 0 14px}
+  p{margin:0 0 12px}
+  ul{margin:0 0 16px;padding-left:1.2em;color:var(--soft);font-size:14px}
+  li{margin-bottom:4px}
+  .btn{display:block;width:100%;border:0;border-radius:10px;padding:14px;font-size:16px;font-weight:700;
+       background:var(--accent);color:#fff;cursor:pointer;text-align:center;text-decoration:none}
+  .btn:hover{background:var(--accent-deep)}
+  .btn:disabled{background:#b9c6c4;cursor:default}
+  .btn:focus-visible{outline:3px solid var(--accent-deep);outline-offset:2px}
+  .msg{border-radius:10px;padding:12px 14px;font-size:14px;margin-bottom:16px}
+  .msg.err{background:#fbeee6;color:var(--warn)}
+  .msg.ok{background:#e6f4ec;color:var(--ok)}
+  .note{font-size:12.5px;color:var(--muted);margin-top:14px}
+  .who{font-weight:700}
+</style>
+</head>
+<body>
+<main id="root"><p>読み込んでいます…</p></main>
+<script>
+const FN = "https://prnddzrnblfysggiuzmo.supabase.co/functions/v1/present";
+const qs = new URLSearchParams(location.search);
+const root = document.getElementById("root");
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c]));
+const ERR = {
+  invite: "このリンクは使えません（期限切れ、またはすでに使われています）。お手数ですが、担当までご連絡ください。",
+  xauth: "Xとの連携に失敗しました。時間をおいて、もう一度お試しください。",
+  cancel: "連携がキャンセルされました。よろしければ、もう一度お試しください。",
+  server: "こちらの設定に問題がありました。担当までご連絡ください。",
+};
+
+async function main() {
+  if (qs.get("ok") === "1") {
+    root.innerHTML = `
+      <div class="eyebrow">ASOBUZZ PRESENT</div>
+      <h1>連携が完了しました</h1>
+      <div class="msg ok">@${esc(qs.get("u"))} と連携しました。</div>
+      <p>このページは閉じて大丈夫です。キャンペーンの準備ができましたら、担当からご連絡します。</p>
+      <p class="note">連携を解除したい時は、Xの「設定 → セキュリティとアカウントアクセス → アプリとセッション → 連携しているアプリ」からいつでも解除できます。</p>`;
+    return;
+  }
+  const code = qs.get("i") || "";
+  let info = null;
+  try { info = await (await fetch(FN + "/invite-info?i=" + encodeURIComponent(code))).json(); } catch (e) { /* 下で扱う */ }
+  const err = qs.get("e");
+  if (!info || !info.ok) {
+    root.innerHTML = `
+      <div class="eyebrow">ASOBUZZ PRESENT</div>
+      <h1>このリンクは使えません</h1>
+      <p>期限が切れているか、すでに連携が済んでいます。お手数ですが、担当までご連絡ください。</p>`;
+    return;
+  }
+  root.innerHTML = `
+    <div class="eyebrow">ASOBUZZ PRESENT</div>
+    <h1><span class="who">${esc(info.name)}</span> 様<br>Xアカウントの連携のお願い</h1>
+    ${err ? `<div class="msg err">${esc(ERR[err] || "うまくいきませんでした。")}</div>` : ""}
+    <p>プレゼントキャンペーンで「応募者がフォローしているか」「リポストしているか」を自動で確認するために、キャンペーンを行うXアカウントとの連携をお願いします。</p>
+    <ul>
+      <li>ボタンを押すとXの画面が開きます。<b>キャンペーンを行うアカウント</b>でログインして「連携アプリを認証」を押してください。</li>
+      <li>読み取りだけの許可です。投稿・いいね・フォロー・DMの送信はできません。</li>
+      <li>パスワードがこちらに伝わることはありません。</li>
+    </ul>
+    <button class="btn" id="go">Xで連携する</button>
+    <p class="note">このリンクの有効期限：${esc(new Date(info.expiresAt).toLocaleDateString("ja-JP"))}まで</p>`;
+  document.getElementById("go").addEventListener("click", (ev) => {
+    ev.target.disabled = true;
+    ev.target.textContent = "Xへ移動しています…";
+    location.href = FN + "/connect?i=" + encodeURIComponent(code);
+  });
+}
+main();
+</script>
+</body>
+</html>
