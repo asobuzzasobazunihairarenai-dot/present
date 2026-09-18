@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>管理画面 | AsobuzZ プレゼント抽選</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap">
+<style>
+  :root{ --ground:#eef3f2; --panel:#fff; --ink:#14221f; --soft:#44524f; --muted:#6a7a77; --rule:#d7e1df;
+         --accent:#0a7d80; --accent-deep:#075e61; --warn:#b3541e; --warn-bg:#fbeee6; --ok:#127a3c; --ok-bg:#e6f4ec; --track:#e6edec; }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--ground);color:var(--ink);font-family:"Noto Sans JP",system-ui,sans-serif;
+       font-size:14.5px;line-height:1.7;padding-inline:16px;padding-block:28px 64px}
+  .wrap{max-width:900px;margin:0 auto;display:grid;gap:18px}
+  #app{display:grid;gap:18px}
+  [hidden]{display:none!important}
+  header h1{font-size:20px;margin:0}
+  header p{margin:2px 0 0;color:var(--muted);font-size:13px}
+  section{background:var(--panel);border:1px solid var(--rule);border-radius:12px;padding:18px}
+  h2{font-size:16px;margin:0 0 4px}
+  .hint{font-size:12.5px;color:var(--muted);margin:0 0 12px}
+  label{display:grid;gap:3px;font-size:12.5px;color:var(--soft);font-weight:500}
+  input,select,textarea{font:inherit;font-size:14px;color:var(--ink);background:#fff;border:1px solid var(--rule);border-radius:8px;padding:8px 10px;width:100%}
+  textarea{min-height:92px;resize:vertical;font-family:ui-monospace,Consolas,monospace;font-size:12.5px}
+  input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:end}
+  .row > label{flex:1 1 200px}
+  button{font:inherit;font-size:13.5px;font-weight:700;border:0;border-radius:8px;padding:9px 14px;cursor:pointer;background:var(--accent);color:#fff}
+  button:hover{background:var(--accent-deep)}
+  button.sub{background:var(--track);color:var(--ink)}
+  button.sub:hover{background:#d9e3e1}
+  button.danger{background:var(--warn-bg);color:var(--warn)}
+  button:disabled{opacity:.5;cursor:default}
+  .list{display:grid;gap:10px}
+  .item{border:1px solid var(--rule);border-radius:10px;padding:12px 14px;display:grid;gap:8px}
+  .item .top{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .item .name{font-weight:700}
+  .item .meta{font-size:12.5px;color:var(--muted)}
+  .pill{font-size:11px;font-weight:700;padding:2px 9px;border-radius:99px;background:var(--track);color:var(--soft)}
+  .pill.open{background:var(--ok-bg);color:var(--ok)}
+  .pill.before{background:#e7f0fb;color:#1d5aa0}
+  .pill.closed{background:var(--warn-bg);color:var(--warn)}
+  .links{display:flex;gap:12px;flex-wrap:wrap;font-size:13px}
+  .links a{color:var(--accent-deep)}
+  .msg{border-radius:8px;padding:10px 12px;font-size:13px}
+  .msg.err{background:var(--warn-bg);color:var(--warn)}
+  .msg.ok{background:var(--ok-bg);color:var(--ok)}
+  .msg ul{margin:0;padding-left:1.2em}
+  .copy{display:flex;gap:6px}
+  .copy input{font-family:ui-monospace,Consolas,monospace;font-size:12.5px}
+  details summary{cursor:pointer;font-size:13px;color:var(--soft);font-weight:700}
+  .count{font-size:12px;color:var(--muted)}
+  .count.bad{color:var(--warn);font-weight:700}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>管理画面</h1>
+    <p>AsobuzZ プレゼント抽選 ／ 主催者の連携・キャンペーンの作成と開始</p>
+  </header>
+
+  <section id="login">
+    <h2>合言葉</h2>
+    <p class="hint">Secrets控え.txt の PRESENT_ADMIN_KEY です。このブラウザのタブを閉じるまで覚えます。</p>
+    <div class="row">
+      <label>合言葉<input id="key" type="password" autocomplete="off"></label>
+      <button id="keyBtn">開く</button>
+    </div>
+    <div id="keyMsg"></div>
+  </section>
+
+  <div id="app" hidden>
+    <section>
+      <h2>主催者</h2>
+      <p class="hint">キャンペーンを行うXアカウントです。「連携済み」になっていれば、そのアカウントでフォロー・リポストを確認できます。</p>
+      <div class="list" id="orgs"></div>
+      <details style="margin-top:14px">
+        <summary>新しい主催者に連携リンクを送る</summary>
+        <div class="row" style="margin-top:10px">
+          <label>表示名（お客さんの名前）<input id="invName" placeholder="例：〇〇サークル"></label>
+          <label style="flex:0 0 120px">有効日数<input id="invDays" type="number" min="1" max="60" value="14"></label>
+          <button id="invBtn">リンクを発行</button>
+        </div>
+        <div id="invOut" style="margin-top:10px"></div>
+      </details>
+    </section>
+
+    <section>
+      <h2>キャンペーン</h2>
+      <p class="hint">作っただけでは受付は始まりません。告知を投稿したら、その投稿のURLを入れて「開始」を押します。</p>
+      <div class="list" id="camps"></div>
+    </section>
+
+    <section>
+      <h2>新しいキャンペーンを作る</h2>
+      <p class="hint">当たり時刻は「初日は受付開始の10分後から、2日目以降は毎日の投稿の10分後から、上限まで」のどこかに自動で決まります（秘密）。応募要項も日付入りで自動で作ります。</p>
+      <form id="create" class="grid" autocomplete="off">
+        <label>主催者<select id="c_org" required></select></label>
+        <label>URLの名前（半角英小文字・数字・-）<input id="c_slug" required placeholder="例：autumn2026"></label>
+        <label style="grid-column:1/-1">キャンペーン名<input id="c_title" required placeholder="例：秋の五日五色キャンペーン"></label>
+        <label style="grid-column:1/-1">賞品名<input id="c_prize" required placeholder="例：『〇〇』ユドナリウムコネクト版"></label>
+        <label style="grid-column:1/-1">賞品の注意書き（任意）<input id="c_note" value="受け取りには pixiv アカウント（無料）が必要です。"></label>
+        <label>開始日<input id="c_day" type="date" required></label>
+        <label>受付開始の時刻<input id="c_start" type="time" value="20:00" required></label>
+        <label>期間（日）<input id="c_days" type="number" min="1" max="14" value="5" required></label>
+        <label>2日目以降の投稿時刻<input id="c_post" type="time" value="19:00" required></label>
+        <label>当たり時刻の上限<input id="c_last" type="time" value="23:00" required></label>
+        <label>受け取りの再表示（終了後の日数）<input id="c_claim" type="number" min="1" max="60" value="14" required></label>
+        <label style="grid-column:1/-1">賞品（URLやコード。1行に1つ、期間の日数ぶん） <span class="count" id="c_count"></span>
+          <textarea id="c_prizes" placeholder="https://booth.pm/gifts/..."></textarea></label>
+        <details style="grid-column:1/-1">
+          <summary>応募ページの見た目（任意）</summary>
+          <div class="grid" style="margin-top:10px">
+            <label>テーマ色<input id="t_accent" type="color" value="#0a7d80"></label>
+            <label>ロゴ画像のURL（https）<input id="t_logo" placeholder="https://..."></label>
+            <label>メイン画像のURL（https）<input id="t_kv" placeholder="https://..."></label>
+            <label style="grid-column:1/-1">特典の枠の見出し<input id="t_offerTitle" placeholder="例：🎁 ご購入済みの方へ"></label>
+            <label style="grid-column:1/-1">特典の枠の本文<textarea id="t_offerBody" style="font-family:inherit;font-size:13.5px"></textarea></label>
+          </div>
+        </details>
+        <div style="grid-column:1/-1;display:grid;gap:10px">
+          <div><button type="submit" id="c_btn">キャンペーンを作る</button></div>
+          <div id="c_out"></div>
+        </div>
+      </form>
+    </section>
+  </div>
+</div>
+
+<script>
+const FN = "https://prnddzrnblfysggiuzmo.supabase.co/functions/v1/present";
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c]));
+const jst = (t) => t ? new Date(t).toLocaleString("ja-JP", { timeZone:"Asia/Tokyo", month:"numeric", day:"numeric", hour:"2-digit", minute:"2-digit" }) : "";
+let KEY = "";
+try { KEY = sessionStorage.getItem("presentAdminKey") || ""; } catch (e) {}
+
+async function api(step, body) {
+  const res = await fetch(FN + "/" + step, {
+    method: body ? "POST" : "GET",
+    headers: Object.assign({ "x-admin-key": KEY }, body ? { "content-type": "application/json" } : {}),
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  if (res.status === 404) throw new Error("合言葉が違います");
+  return await res.json();
+}
+const msg = (el, kind, html) => { el.innerHTML = '<div class="msg ' + kind + '">' + html + "</div>"; };
+const errList = (errs) => "<ul>" + (errs || ["うまくいきませんでした"]).map((e) => "<li>" + esc(e) + "</li>").join("") + "</ul>";
+function copyBox(v) {
+  const id = "cp" + Math.random().toString(36).slice(2);
+  setTimeout(() => { const b = document.getElementById(id); if (b) b.onclick = () => { navigator.clipboard.writeText(v).then(() => { b.textContent = "コピーしました"; }); }; });
+  return '<div class="copy"><input readonly value="' + esc(v) + '"><button type="button" class="sub" id="' + id + '">コピー</button></div>';
+}
+
+async function open() {
+  try {
+    await loadOrgs();
+    $("login").hidden = true; $("app").hidden = false;
+    try { sessionStorage.setItem("presentAdminKey", KEY); } catch (e) {}
+    await loadCamps();
+  } catch (e) { msg($("keyMsg"), "err", esc(e.message)); }
+}
+$("keyBtn").onclick = () => { KEY = $("key").value.trim(); open(); };
+$("key").addEventListener("keydown", (e) => { if (e.key === "Enter") $("keyBtn").click(); });
+
+let ORGS = [];
+async function loadOrgs() {
+  const r = await api("admin-organizers");
+  ORGS = r.organizers || [];
+  $("orgs").innerHTML = ORGS.map((o) => `
+    <div class="item">
+      <div class="top"><span class="name">${esc(o.name)}</span><span class="meta">@${esc(o.xUsername)}</span>
+        <span class="pill ${o.connected ? "open" : "closed"}">${o.connected ? "連携済み " + esc(jst(o.connectedAt)) : "未連携"}</span></div>
+      <div class="row"><button class="sub" data-check="${esc(o.id)}">連携を確認</button><span class="meta" id="chk-${esc(o.id)}"></span></div>
+    </div>`).join("") || '<p class="hint">まだ主催者がいません。</p>';
+  document.querySelectorAll("[data-check]").forEach((b) => b.onclick = async () => {
+    const out = $("chk-" + b.dataset.check); b.disabled = true; out.textContent = "Xに確認しています…";
+    try {
+      const r = await api("admin-check-org", { id: b.dataset.check });
+      out.textContent = r.ok ? (r.matches ? "✓ @" + r.username + " の鍵として使えます（" + (r.source === "connected" ? "連携の鍵" : "予備の鍵") + "）" : "⚠ 鍵の持ち主が違います（@" + r.username + "）")
+                             : "⚠ 使えません：" + (r.error || "");
+    } catch (e) { out.textContent = e.message; }
+    b.disabled = false;
+  });
+  $("c_org").innerHTML = ORGS.map((o) => `<option value="${esc(o.id)}">${esc(o.name)}（@${esc(o.xUsername)}）${o.connected ? "" : " ※未連携"}</option>`).join("");
+}
+
+$("invBtn").onclick = async () => {
+  const name = $("invName").value.trim();
+  if (!name) return msg($("invOut"), "err", "表示名を入れてください");
+  const r = await fetch(FN + "/admin-invite?name=" + encodeURIComponent(name) + "&days=" + encodeURIComponent($("invDays").value), { headers: { "x-admin-key": KEY } }).then((x) => x.json()).catch(() => null);
+  if (!r || !r.ok) return msg($("invOut"), "err", "発行できませんでした");
+  $("invOut").innerHTML = '<p class="hint" style="margin:0 0 6px">このリンクをお客さんに送ってください（' + esc(jst(r.expiresAt)) + "まで・1回だけ使えます）</p>" + copyBox(r.url);
+};
+
+async function loadCamps() {
+  const r = await api("admin-campaigns");
+  const label = { open: "受付中", before: "開始前", after: "終了", closed: "停止中" };
+  $("camps").innerHTML = (r.campaigns || []).map((c) => `
+    <div class="item">
+      <div class="top"><span class="name">${esc(c.title)}</span><span class="pill ${esc(c.state)}">${label[c.state] || c.state}</span>
+        <span class="meta">${esc(c.slug)} ／ @${esc(c.organizer?.x_username)} ／ ${esc(jst(c.startsAt))} 〜 ${esc(jst(c.endsAt))}</span></div>
+      <div class="links"><a href="${esc(c.entryUrl)}" target="_blank" rel="noopener">応募ページ</a>
+        ${c.dashboardUrl ? `<a href="${esc(c.dashboardUrl)}" target="_blank" rel="noopener">ダッシュボード（お客さんに渡せる）</a>` : ""}
+        ${c.targetPostId ? `<span class="meta">告知ID ${esc(c.targetPostId)}</span>` : `<span class="meta">告知ID 未設定</span>`}</div>
+      ${c.enabled ? `<div class="row"><button class="danger" data-stop="${esc(c.slug)}">受付を止める</button></div>`
+        : `<div class="row"><label>告知の投稿のURL<input data-post="${esc(c.slug)}" placeholder="https://x.com/…/status/…"></label>
+           <button data-start="${esc(c.slug)}">開始</button></div>`}
+      <div data-out="${esc(c.slug)}"></div>
+    </div>`).join("") || '<p class="hint">まだキャンペーンがありません。</p>';
+  document.querySelectorAll("[data-start]").forEach((b) => b.onclick = async () => {
+    const slug = b.dataset.start, out = document.querySelector('[data-out="' + slug + '"]');
+    const raw = document.querySelector('[data-post="' + slug + '"]').value.trim();
+    const m = raw.match(/status\/(\d+)/) || raw.match(/^(\d+)$/);
+    if (!m) return msg(out, "err", "告知の投稿のURL（…/status/数字）を入れてください");
+    if (!confirm("「" + slug + "」の受付を開始します。よろしいですか？")) return;
+    const r2 = await api("admin-start-campaign", { slug, targetPostId: m[1] });
+    if (!r2.ok) return msg(out, "err", errList(r2.errors));
+    await loadCamps();
+  });
+  document.querySelectorAll("[data-stop]").forEach((b) => b.onclick = async () => {
+    const slug = b.dataset.stop;
+    if (!confirm("「" + slug + "」の受付を止めます。応募も受け取りの再表示もできなくなります。よろしいですか？")) return;
+    const r2 = await api("admin-stop-campaign", { slug });
+    if (!r2.ok) return msg(document.querySelector('[data-out="' + slug + '"]'), "err", errList(r2.errors));
+    await loadCamps();
+  });
+}
+
+const prizeLines = () => $("c_prizes").value.split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
+function updateCount() {
+  const n = prizeLines().length, d = Number($("c_days").value) || 0;
+  $("c_count").textContent = n + " / " + d + " 個";
+  $("c_count").className = "count" + (n === d ? "" : " bad");
+}
+$("c_prizes").addEventListener("input", updateCount);
+$("c_days").addEventListener("input", updateCount);
+updateCount();
+
+$("create").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const btn = $("c_btn"); btn.disabled = true; btn.textContent = "作っています…";
+  const body = {
+    organizerId: $("c_org").value, slug: $("c_slug").value, title: $("c_title").value,
+    prizeName: $("c_prize").value, prizeNote: $("c_note").value,
+    startDay: $("c_day").value, startTime: $("c_start").value, days: Number($("c_days").value),
+    postTime: $("c_post").value, lastWin: $("c_last").value, claimDays: Number($("c_claim").value),
+    prizes: prizeLines(),
+    theme: { accent: $("t_accent").value, logoUrl: $("t_logo").value, kvUrl: $("t_kv").value,
+             offerTitle: $("t_offerTitle").value, offerBody: $("t_offerBody").value },
+  };
+  try {
+    const r = await api("admin-create-campaign", body);
+    if (!r.ok) msg($("c_out"), "err", errList(r.errors));
+    else {
+      $("c_out").innerHTML = '<div class="msg ok">作成しました（まだ受付は始まっていません。受け取りの再表示は ' + esc(r.claimUntil) + ' まで）</div>'
+        + '<p class="hint" style="margin:10px 0 4px">応募ページ</p>' + copyBox(r.entryUrl)
+        + '<p class="hint" style="margin:10px 0 4px">お客さん用のダッシュボード</p>' + copyBox(r.dashboardUrl);
+      $("create").reset(); updateCount();
+      await loadCamps();
+    }
+  } catch (err) { msg($("c_out"), "err", esc(err.message)); }
+  btn.disabled = false; btn.textContent = "キャンペーンを作る";
+});
+
+if (KEY) open();
+</script>
+</body>
+</html>
