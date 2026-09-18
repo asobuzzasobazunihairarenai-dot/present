@@ -74,7 +74,8 @@
     <p id="who" hidden style="margin-top:6px"><span id="whoText"></span> <button class="sub" id="logout" type="button" style="padding:4px 10px;font-size:12px">ログアウト</button></p>
   </header>
 
-  <section id="login">
+  <p id="checking" class="hint">ログイン状態を確認しています…</p>
+  <section id="login" hidden>
     <h2>ログイン</h2>
     <p class="hint">管理者のGoogleアカウント（asobuzz）でログインすると開きます。一度ログインすれば、次からは自動で開きます。</p>
     <div class="row"><button id="gBtn" type="button">Googleでログイン</button></div>
@@ -201,7 +202,10 @@ try { KEY = sessionStorage.getItem("presentAdminKey") || ""; } catch (e) {}
 // 管理者のGoogleログイン（Supabase）。公開してよい鍵（publishable）だけを使う
 const SB_URL = "https://prnddzrnblfysggiuzmo.supabase.co";
 const SB_ANON = "sb_publishable_YFYWr0FghhXbrqNQJ9Jzgw_hu31kvw9";
-const sb = window.supabase ? window.supabase.createClient(SB_URL, SB_ANON) : null;
+const sb = window.supabase ? window.supabase.createClient(SB_URL, SB_ANON, {
+  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true,
+          storage: window.localStorage, storageKey: "present-admin-auth" },
+}) : null;
 let EMAIL = "";
 async function authHeaders() {
   const h = {};
@@ -229,7 +233,7 @@ function copyBox(v) {
   return '<div class="copy"><input readonly value="' + esc(v) + '"><button type="button" class="sub" id="' + id + '">コピー</button></div>';
 }
 
-async function open() {
+async function openApp() {
   try {
     await loadOrgs();
     $("login").hidden = true; $("app").hidden = false;
@@ -239,7 +243,7 @@ async function open() {
     await loadCamps();
   } catch (e) { msg($("keyMsg"), "err", esc(e.message)); }
 }
-$("keyBtn").onclick = () => { KEY = $("key").value.trim(); open(); };
+$("keyBtn").onclick = () => { KEY = $("key").value.trim(); openApp(); };
 $("key").addEventListener("keydown", (e) => { if (e.key === "Enter") $("keyBtn").click(); });
 
 let ORGS = [];
@@ -356,9 +360,21 @@ $("logout").onclick = async () => {
 (async () => {
   if (sb) {
     try { const { data } = await sb.auth.getSession(); EMAIL = data?.session?.user?.email || ""; } catch (e) {}
+    // Googleから戻ってきた直後のURLに付いているログイン情報を消す（開き直した時に古い情報を読みに行かない）
+    if (EMAIL && /access_token|code=/.test(location.hash + location.search)) history.replaceState(null, "", location.pathname);
+    // 別のタブでログイン／ログアウトした時も追いかける
+    sb.auth.onAuthStateChange((ev, session) => {
+      const e = session?.user?.email || "";
+      if (ev === "SIGNED_IN" && e && !EMAIL) { EMAIL = e; openApp(); }
+      if (ev === "SIGNED_OUT" && EMAIL && !KEY) location.reload();
+    });
   }
-  if (EMAIL || KEY) await open();
-  if (EMAIL && !$("app").hidden === false) { $("who").hidden = false; $("whoText").textContent = EMAIL + " でログイン中（このアカウントでは開けません）"; }
+  $("checking").hidden = true;
+  if (EMAIL || KEY) await openApp();
+  if ($("app").hidden) {
+    $("login").hidden = false;
+    if (EMAIL) { $("who").hidden = false; $("whoText").textContent = EMAIL + " でログイン中（このアカウントでは開けません）"; }
+  }
 })();
 </script>
 </body>
