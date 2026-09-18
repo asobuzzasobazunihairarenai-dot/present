@@ -104,6 +104,9 @@
   footer{margin-top:2.6rem;text-align:center;font-size:.74rem;color:var(--on-paper-soft);letter-spacing:.04em}
   footer a{color:var(--on-paper-soft)}
   .hidden{display:none!important}
+  /* 管理画面で作ったキャンペーン：7色の飾りをやめ、テーマ色1色に揃える */
+  body.themed ol.cond li::before{background:var(--accent)!important}
+  .offer .body{white-space:pre-wrap}
   .spin{
     width:1.4rem;height:1.4rem;border:2px solid var(--rule);border-top-color:var(--accent);
     border-radius:50%;margin:2.5rem auto;animation:sp .8s linear infinite;
@@ -151,6 +154,31 @@ const ERRORS = {
   server: "うまくいきませんでした。少し待ってからもう一度お試しください。",
 };
 
+// ------------------------------------------------ 見た目（キャンペーンごと）
+// 管理画面で作ったキャンペーンには theme.claimUntil が必ず入る。無いものは七日七色（最初のキャンペーン）の見た目のまま
+let THEME = { legacy: true, th: {} };
+function applyTheme(c) {
+  const th = (c && c.theme) || {};
+  const legacy = !th.claimUntil;
+  THEME = { legacy, th };
+  if (legacy) return THEME;
+  const a = /^#[0-9a-fA-F]{6}$/.test(th.accent || "") ? th.accent : "#0a7d80";
+  const st = document.documentElement.style;
+  st.setProperty("--accent", a);
+  st.setProperty("--accent-deep", "color-mix(in srgb, " + a + " 72%, #000)");
+  st.setProperty("--paper", "color-mix(in srgb, " + a + " 20%, #fff)");
+  st.setProperty("--rule", "color-mix(in srgb, " + a + " 16%, #fff)");
+  document.body.classList.add("themed");
+  const sp = document.querySelector(".spectrum");
+  if (sp) sp.innerHTML = '<i style="background:var(--accent)"></i>';
+  return THEME;
+}
+const WD = ["日", "月", "火", "水", "木", "金", "土"];
+function ymdw(day) {   // "2026-09-30" → "2026年9月30日（水）"
+  const d = new Date(Date.parse(day + "T12:00:00+09:00"));
+  return day.slice(0, 4) + "年" + Number(day.slice(5, 7)) + "月" + Number(day.slice(8, 10)) + "日（" + WD[d.getUTCDay()] + "）";
+}
+
 function show(html, title) {
   app.innerHTML = html;
   loading.classList.add("hidden");
@@ -166,6 +194,8 @@ async function showResult(id, already) {
     r = await res.json();
   } catch (e) { /* 下で扱う */ }
   if (!r || !r.ok) return show(`<div class="msg">結果を読み込めませんでした。時間をおいてお試しください。</div>` + againLink(), "結果");
+  try { applyTheme(await (await fetch(FN + "/campaign?c=" + encodeURIComponent(SLUG))).json()); } catch (e) { /* 見た目だけの話なので続ける */ }
+  const perk = THEME.legacy ? "すでにご購入済みの方には、未発表の緑EDITION（テストプレイ中）をお渡しします。@7shadesofseven までDMでお知らせください。" : "";
 
   if (already || r.result === "already_today") {
     return show(`<div class="result">
@@ -181,8 +211,8 @@ async function showResult(id, already) {
         <b>受け取りリンク（このページを閉じる前に開いてください）</b>
         <a href="${esc(r.prize)}" target="_blank" rel="noopener">${esc(r.prize)}</a>
       </div>
-      <p class="sub" style="font-size:.86rem">受け取り期限はありません。閉じてしまった場合は @7shadesofseven のDMまでご連絡ください。</p>` : ""}
-    <p class="sub" style="font-size:.84rem">すでにご購入済みの方には、未発表の緑EDITION（テストプレイ中）をお渡しします。@7shadesofseven までDMでお知らせください。</p>
+      <p class="sub" style="font-size:.86rem">画面を閉じてしまった場合も、応募ページから当選したXアカウントでログインすると、もう一度表示できます。</p>` : ""}
+    ${perk ? `<p class="sub" style="font-size:.84rem">${perk}</p>` : ""}
     </div>`, "当選しました");
   }
   if (r.result === "not_qualified") {
@@ -198,7 +228,7 @@ async function showResult(id, already) {
     <div class="big mincho">ざんねん、ハズレです</div>
     <p class="sub">またのご参加をお待ちしています。<br>応募は1日1回、毎日できます。</p>
     <p class="sub" style="font-size:.84rem">※フォロー・リポストがお済みでない場合は、条件を満たしていないため当選の対象外です。念のためご確認ください。</p>
-    <p class="sub" style="font-size:.84rem">ご購入いただいた方には、未発表の緑EDITION（テストプレイ中）をお渡ししています。@7shadesofseven までDMでお知らせください。</p>
+    ${THEME.legacy ? `<p class="sub" style="font-size:.84rem">ご購入いただいた方には、未発表の緑EDITION（テストプレイ中）をお渡ししています。@7shadesofseven までDMでお知らせください。</p>` : ""}
   </div>` + againLink(), "ざんねん");
 }
 
@@ -214,6 +244,27 @@ async function showEntry() {
     c = await res.json();
   } catch (e) { /* 下で扱う */ }
   if (!c || !c.ok) return show(`<div class="msg">キャンペーンが見つかりませんでした。</div>`, "見つかりません");
+
+  const { legacy, th } = applyTheme(c);
+  const logoHtml = legacy
+    ? `<div class="logobox"><img src="img/logo.webp" width="600" height="400" alt="7 SHADES OF S:EVEN"></div>`
+    : (th.logoUrl ? `<div class="logobox"><img src="${esc(th.logoUrl)}" alt=""></div>` : "");
+  const kvHtml = legacy
+    ? `<img class="kv" src="img/keyvisual.webp" width="900" height="900" alt="ユドナリウムコネクト版の盤面" loading="lazy">`
+    : (th.kvUrl ? `<img class="kv" src="${esc(th.kvUrl)}" alt="" loading="lazy">` : "");
+  const claimUntilTxt = legacy ? "2026年9月30日（水）" : ymdw(th.claimUntil);
+  const offerHtml = legacy ? `
+    <div class="offer">
+      <b>🎁 ご購入済みの方へ</b>
+      <p>ユドナリウムコネクト版をご購入いただいた方には、未発表の<b style="display:inline">緑EDITION</b>（テストプレイ中）をお渡しします。キャンペーン期間中にご購入いただく方も対象です。</p>
+      <p><a href="https://x.com/7shadesofseven" target="_blank" rel="noopener">@7shadesofseven</a> までDMでお知らせください。</p>
+      <p class="fine">テストプレイ中のため、内容は変更される場合があります。お申し出は2026年9月24日（木）まで。</p>
+    </div>`
+    : ((th.offerTitle || th.offerBody) ? `
+    <div class="offer">
+      ${th.offerTitle ? `<b>${esc(th.offerTitle)}</b>` : ""}
+      ${th.offerBody ? `<p class="body">${esc(th.offerBody)}</p>` : ""}
+    </div>` : "");
 
   const err = qs.get("e");
   const closed = c.state !== "open";
@@ -232,7 +283,7 @@ async function showEntry() {
     : "現在受け付けていません。";
 
   show(`
-    <div class="logobox"><img src="img/logo.webp" width="600" height="400" alt="7 SHADES OF S:EVEN"></div>
+    ${logoHtml}
     <p class="eyebrow">PRESENT CAMPAIGN</p>
     <h1 class="mincho">${esc(c.title)}</h1>
     <p class="lead">フォローとリポストで、その場で当たります。</p>
@@ -245,12 +296,12 @@ async function showEntry() {
       <b>🎉 当選された方へ</b>
       <p>受け取りリンクを、もう一度表示できます。当選したXアカウントでログインしてください。</p>
       <button class="go" id="claim">Xでログインして受け取りリンクを表示</button>
-      <p class="fine">2026年9月30日（水）まで。当選した方ご本人にだけ表示されます。</p>
+      <p class="fine">${claimUntilTxt}まで。当選した方ご本人にだけ表示されます。</p>
     </div>` : ""}
 
     <div class="card">
       <h2>賞品</h2>
-      <img class="kv" src="img/keyvisual.webp" width="900" height="900" alt="ユドナリウムコネクト版の盤面" loading="lazy">
+      ${kvHtml}
       <p class="prize">${esc(c.prizeName)}</p>
       ${c.prizeNote ? `<p class="note">${esc(c.prizeNote)}</p>` : ""}
       <p class="note">1日${c.winsPerDay}名様</p>
@@ -265,12 +316,7 @@ async function showEntry() {
       </ol>
     </div>
 
-    <div class="offer">
-      <b>🎁 ご購入済みの方へ</b>
-      <p>ユドナリウムコネクト版をご購入いただいた方には、未発表の<b style="display:inline">緑EDITION</b>（テストプレイ中）をお渡しします。キャンペーン期間中にご購入いただく方も対象です。</p>
-      <p><a href="https://x.com/7shadesofseven" target="_blank" rel="noopener">@7shadesofseven</a> までDMでお知らせください。</p>
-      <p class="fine">テストプレイ中のため、内容は変更される場合があります。お申し出は2026年9月24日（木）まで。</p>
-    </div>
+    ${offerHtml}
 
     ${(c.publishWinners && c.state !== "after") ? `
     <label class="agree">
@@ -285,11 +331,11 @@ async function showEntry() {
 
     ${c.terms ? `<details><summary>応募要項を読む</summary><pre>${esc(c.terms)}</pre></details>` : ""}
 
-    <div class="about">
+    ${legacy ? `<div class="about">
       <b>⚙ このページについて</b>
       <p>フォローとリポストの確認から抽選・賞品のお渡しまで、すべて自動で行っています。外部のキャンペーンサービスは使っていません。</p>
       <p>同じ仕組みでキャンペーンを行いたい方は <a href="https://x.com/7shadesofseven" target="_blank" rel="noopener">@7shadesofseven</a> までお気軽にどうぞ。</p>
-    </div>
+    </div>` : ""}
   `, c.title);
 
   const claimBtn = document.getElementById("claim");

@@ -56,6 +56,14 @@
   details summary{cursor:pointer;font-size:13px;color:var(--soft);font-weight:700}
   .count{font-size:12px;color:var(--muted)}
   .count.bad{color:var(--warn);font-weight:700}
+  /* 項目の説明（ⓘ）。マウスを乗せる・押す・キーボードで選ぶと出る */
+  .lt{display:inline-flex;align-items:center;gap:5px;flex-wrap:wrap}
+  .info{display:inline-grid;place-items:center;width:17px;height:17px;border-radius:50%;background:var(--track);color:var(--soft);
+        font-size:11px;font-style:normal;font-weight:700;cursor:help;position:relative;flex:none;line-height:1}
+  .info:hover,.info:focus-visible,.info.show{background:var(--accent);color:#fff;outline:none}
+  .info:hover::after,.info:focus-visible::after,.info.show::after{content:attr(data-tip);position:absolute;left:0;top:calc(100% + 6px);z-index:20;
+        width:max-content;max-width:min(300px,78vw);background:var(--ink);color:#fff;font-weight:400;font-size:12px;line-height:1.65;
+        padding:8px 10px;border-radius:8px;white-space:normal;text-align:left;box-shadow:0 4px 14px rgba(0,0,0,.18)}
 </style>
 </head>
 <body>
@@ -144,6 +152,50 @@ const FN = "https://prnddzrnblfysggiuzmo.supabase.co/functions/v1/present";
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c]));
 const jst = (t) => t ? new Date(t).toLocaleString("ja-JP", { timeZone:"Asia/Tokyo", month:"numeric", day:"numeric", hour:"2-digit", minute:"2-digit" }) : "";
+// 各項目の説明（ⓘ）
+const INFO = {
+  c_org: "キャンペーンを行うXアカウントです。応募者はこのアカウントのフォローが必要になります。未連携の主催者は、当選判定でフォローを確認できないので、先に連携してください。",
+  c_slug: "応募ページのURLの最後になります（present.asobuzz.net/?c=この名前）。あとから変えられないので、短く分かりやすい英数字にしてください。例：autumn2026",
+  c_title: "応募ページの一番上に大きく出る名前です。",
+  c_prize: "応募ページの賞品欄と、応募要項に入ります。",
+  c_note: "賞品名の下に小さく出る注意書きです。受け取りに必要なもの（pixivアカウントなど）を書きます。",
+  c_day: "受付を始める日（日本時間）です。",
+  c_start: "初日に受付を始める時刻です。初日の告知（受付開始の投稿）をこの時刻に出します。初日の当たり時刻は、この10分後から上限までのどこかになります。",
+  c_days: "受付する日数です。1日1名なので、賞品の数と同じになります。七日七色では3日目以降は常連中心になったので、5日前後がおすすめです。",
+  c_post: "2日目以降、毎日の投稿を予約する時刻です。当たり時刻は毎日この10分後から上限までのどこかになるので、投稿を見てすぐ来た人にもチャンスがあります。",
+  c_last: "当たり時刻の一番遅い時刻です。当たり時刻を過ぎてから最初に応募した人が当選します。",
+  c_claim: "当選者が画面を閉じてしまっても、応募ページから受け取りリンクをもう一度表示できる日数です（最終日から数えます）。過ぎたら当選者の記録を消します。応募要項にも日付入りで書かれます。",
+  c_prizes: "当選した人の画面に出す受け取りリンクやコードです。1行に1つ、期間の日数ぶん入れます。上から順に配られます。",
+  t_accent: "応募ページのボタンや見出しの色です。背景は、この色を薄くしたものになります。",
+  t_logo: "応募ページの一番上に出すロゴ画像のURL（https で始まるもの）です。空なら出しません。背景が透明な画像がきれいに見えます。",
+  t_kv: "賞品欄に出す画像のURL（https）です。空なら出しません。",
+  t_offerTitle: "応募ページに出す案内の枠の見出しです。購入者特典などがある時に使います。見出しも本文も空なら、枠ごと出しません。",
+  t_offerBody: "案内の枠の本文です。改行はそのまま表示されます。",
+  invName: "連携ページに「〇〇 様」と出る名前です。お客さんのサークル名など。",
+  invDays: "連携リンクの有効期限（日数）です。過ぎたら新しく発行し直してください。",
+};
+function infoIcon(tip) {
+  return '<i class="info" tabindex="0" role="button" aria-label="説明" data-tip="' + esc(tip) + '">i</i>';
+}
+function decorateInfo(root) {
+  for (const [id, tip] of Object.entries(INFO)) {
+    const el = root.querySelector("#" + id);
+    const label = el && el.closest("label");
+    if (!label || label.querySelector(".info")) continue;
+    const text = [...label.childNodes].find((n) => n.nodeType === 3 && n.textContent.trim());
+    if (!text) continue;
+    const span = document.createElement("span");
+    span.className = "lt";
+    span.innerHTML = esc(text.textContent.trim()) + infoIcon(tip);
+    label.replaceChild(span, text);
+  }
+}
+// ラベルの中のⓘを押しても入力欄へ飛ばず、説明の表示を切り替えるだけにする
+document.addEventListener("click", (e) => {
+  const i = e.target.closest && e.target.closest(".info");
+  document.querySelectorAll(".info.show").forEach((x) => { if (x !== i) x.classList.remove("show"); });
+  if (i) { e.preventDefault(); i.classList.toggle("show"); }
+});
 let KEY = "";
 try { KEY = sessionStorage.getItem("presentAdminKey") || ""; } catch (e) {}
 // 管理者のGoogleログイン（Supabase）。公開してよい鍵（publishable）だけを使う
@@ -231,7 +283,7 @@ async function loadCamps() {
         ${c.dashboardUrl ? `<a href="${esc(c.dashboardUrl)}" target="_blank" rel="noopener">ダッシュボード（お客さんに渡せる）</a>` : ""}
         ${c.targetPostId ? `<span class="meta">告知ID ${esc(c.targetPostId)}</span>` : `<span class="meta">告知ID 未設定</span>`}</div>
       ${c.enabled ? `<div class="row"><button class="danger" data-stop="${esc(c.slug)}">受付を止める</button></div>`
-        : `<div class="row"><label>告知の投稿のURL<input data-post="${esc(c.slug)}" placeholder="https://x.com/…/status/…"></label>
+        : `<div class="row"><label><span class="lt">告知の投稿のURL${infoIcon("告知を投稿したら、その投稿のURLを貼って「開始」を押します。この投稿以降に主催者が出した投稿なら、どれをリポストしても応募の条件を満たします。")}</span><input data-post="${esc(c.slug)}" placeholder="https://x.com/…/status/…"></label>
            <button data-start="${esc(c.slug)}">開始</button></div>`}
       <div data-out="${esc(c.slug)}"></div>
     </div>`).join("") || '<p class="hint">まだキャンペーンがありません。</p>';
@@ -260,6 +312,7 @@ function updateCount() {
   $("c_count").textContent = n + " / " + d + " 個";
   $("c_count").className = "count" + (n === d ? "" : " bad");
 }
+decorateInfo(document);
 $("c_prizes").addEventListener("input", updateCount);
 $("c_days").addEventListener("input", updateCount);
 updateCount();
