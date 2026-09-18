@@ -282,6 +282,7 @@ async function loadCamps() {
       <div class="links"><a href="${esc(c.entryUrl)}" target="_blank" rel="noopener">応募ページ</a>
         ${c.dashboardUrl ? `<a href="${esc(c.dashboardUrl)}" target="_blank" rel="noopener">ダッシュボード（お客さんに渡せる）</a>` : ""}
         ${c.targetPostId ? `<span class="meta">告知ID ${esc(c.targetPostId)}</span>` : `<span class="meta">告知ID 未設定</span>`}</div>
+      ${c.xUsage ? `<div class="meta"><span class="lt">Xへの問い合わせ ${c.xUsage.calls}回（ユーザー${c.xUsage.users}件・投稿${c.xUsage.posts}件を読んだ）推定 ${c.xUsage.usd.toFixed(3)}${c.xUsage.failed ? "・失敗 " + c.xUsage.failed + "回" : ""}${infoIcon("このキャンペーンの当選判定でXに問い合わせた回数と、Xの従量課金の推定額です。問い合わせるのは当たり時刻を過ぎた時だけなので、ハズレの応募では増えません。料金の根拠と、使いすぎの確認に使います。記録はこの仕組みを入れた日（2026-09-19）からです。")}</span></div>` : ""}
       ${c.enabled ? `<div class="row"><button class="danger" data-stop="${esc(c.slug)}">受付を止める</button></div>`
         : `<div class="row"><label><span class="lt">告知の投稿のURL${infoIcon("告知を投稿したら、その投稿のURLを貼って「開始」を押します。この投稿以降に主催者が出した投稿なら、どれをリポストしても応募の条件を満たします。")}</span><input data-post="${esc(c.slug)}" placeholder="https://x.com/…/status/…"></label>
            <button data-start="${esc(c.slug)}">開始</button></div>`}
