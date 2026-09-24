@@ -194,7 +194,8 @@ async function showResult(id, already) {
     r = await res.json();
   } catch (e) { /* 下で扱う */ }
   if (!r || !r.ok) return show(`<div class="msg">結果を読み込めませんでした。時間をおいてお試しください。</div>` + againLink(), "結果");
-  try { applyTheme(await (await fetch(FN + "/campaign?c=" + encodeURIComponent(SLUG))).json()); } catch (e) { /* 見た目だけの話なので続ける */ }
+  let CAMP = null;
+  try { CAMP = await (await fetch(FN + "/campaign?c=" + encodeURIComponent(SLUG))).json(); applyTheme(CAMP); } catch (e) { /* 見た目だけの話なので続ける */ }
   const perk = THEME.legacy ? "すでにご購入済みの方には、未発表の緑EDITION（テストプレイ中）をお渡しします。@7shadesofseven までDMでお知らせください。" : "";
 
   if (already || r.result === "already_today") {
@@ -216,18 +217,22 @@ async function showResult(id, already) {
     </div>`, "当選しました");
   }
   if (r.result === "not_qualified") {
+    const over = r.reason === "over_limit";
     const why = r.reason === "follow" ? "フォローが確認できませんでした。"
       : r.reason === "repost" ? "リポストが確認できませんでした。"
+      : over ? "このキャンペーンで応募できる回数を、すべて使い切っています。"
       : "条件の確認ができませんでした。";
+    const next = over ? "たくさんのご応募をありがとうございました。"
+      : "フォローとリポストをご確認のうえ、また明日お試しください。";
     return show(`<div class="result">
-      <div class="big mincho">条件が確認できませんでした</div>
-      <p class="sub">${why}<br>フォローとリポストをご確認のうえ、また明日お試しください。</p>
-    </div>` + againLink(), "条件が確認できませんでした");
+      <div class="big mincho">${over ? "応募の上限に達しています" : "条件が確認できませんでした"}</div>
+      <p class="sub">${why}<br>${next}</p>
+    </div>` + againLink(), over ? "応募の上限" : "条件が確認できませんでした");
   }
   return show(`<div class="result">
     <div class="big mincho">ざんねん、ハズレです</div>
-    <p class="sub">またのご参加をお待ちしています。<br>応募は1日1回、毎日できます。</p>
-    <p class="sub" style="font-size:.84rem">※フォロー・リポストがお済みでない場合は、条件を満たしていないため当選の対象外です。念のためご確認ください。</p>
+    <p class="sub">またのご参加をお待ちしています。<br>応募は1日1回、${CAMP && CAMP.maxEntries ? `このキャンペーンでは通算${CAMP.maxEntries}回まで` : "毎日"}できます。</p>
+    <p class="sub" style="font-size:.84rem">※フォロー・${CAMP && CAMP.requireQuote ? "引用リポスト" : "リポスト"}がお済みでない場合は、条件を満たしていないため当選の対象外です。念のためご確認ください。${CAMP && CAMP.requireQuote ? "引用リポストは、応募の直前に行っていただくと確実です。" : ""}</p>
     ${THEME.legacy ? `<p class="sub" style="font-size:.84rem">ご購入いただいた方には、未発表の緑EDITION（テストプレイ中）をお渡ししています。@7shadesofseven までDMでお知らせください。</p>` : ""}
   </div>` + againLink(), "ざんねん");
 }
@@ -286,7 +291,7 @@ async function showEntry() {
     ${logoHtml}
     <p class="eyebrow">PRESENT CAMPAIGN</p>
     <h1 class="mincho">${esc(c.title)}</h1>
-    <p class="lead">フォローとリポストで、その場で当たります。</p>
+    <p class="lead">フォローと${c.requireQuote ? "引用リポスト" : "リポスト"}で、その場で当たります。</p>
 
     ${err ? `<div class="msg">${esc(ERRORS[err] || "うまくいきませんでした。")}</div>` : ""}
     ${closed ? `<div class="msg">${closedMsg}</div>` : ""}
@@ -304,16 +309,17 @@ async function showEntry() {
       ${kvHtml}
       <p class="prize">${esc(c.prizeName)}</p>
       ${c.prizeNote ? `<p class="note">${esc(c.prizeNote)}</p>` : ""}
-      <p class="note">1日${c.winsPerDay}名様</p>
+      <p class="note">${c.winsPerDay ? `1日${c.winsPerDay}名様` : `合計${c.totalWinners}名様`}</p>
     </div>
 
     <div class="card">
       <h2>応募のしかた</h2>
       <ol class="cond">
         <li>Xで主催アカウントをフォロー</li>
-        <li>対象の投稿をリポスト</li>
+        <li>対象の投稿を${c.requireQuote ? "引用リポスト" : "リポスト"}</li>
         <li>下のボタンを押して、その場で結果を確認</li>
       </ol>
+      ${c.maxEntries ? `<p class="note" style="margin-top:.8rem">応募は1日1回、期間を通じて${c.maxEntries}回までです。${c.requireQuote ? `2回目以降は、その回数ぶんの引用リポスト（2回目なら2件、3回目なら3件）が確認できることが条件になります。引用リポストの直後にご応募ください。` : ""}</p>` : ""}
     </div>
 
     ${offerHtml}
