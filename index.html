@@ -323,7 +323,7 @@ async function showEntry() {
       <ol class="cond">
         <li>Xで主催アカウントをフォロー</li>
         <li>対象の投稿を${c.requireQuote ? "引用リポスト" : "リポスト"}</li>
-        ${c.requireRegistration ? `<li>事前登録を済ませる${c.registerUrl ? `（<a href="${esc(c.registerUrl)}" target="_blank" rel="noopener">登録ページ</a>）` : ""}</li>` : ""}
+        ${c.requireRegistration ? `<li><span>事前登録を済ませる${c.registerUrl ? `（<a href="${esc(c.registerUrl)}" target="_blank" rel="noopener">登録ページ</a>）` : ""}</span></li>` : ""}
         <li>下のボタンを押して、その場で結果を確認</li>
       </ol>
       ${c.maxEntries ? `<p class="note" style="margin-top:.8rem">応募は1日1回、期間を通じて${c.maxEntries}回までです。${c.requireQuote ? `2回目以降は、その回数ぶんの引用リポスト（2回目なら2件、3回目なら3件）が確認できることが条件になります。引用リポストの直後にご応募ください。` : ""}</p>` : ""}
