@@ -129,9 +129,13 @@
         <label>受け取りの再表示（終了後の日数）<input id="c_claim" type="number" min="1" max="60" value="14" required></label>
         <label>応募の条件<select id="c_quote"><option value="">リポスト（引用でも可）</option><option value="1">引用リポストのみ</option></select></label>
         <label>1人が応募できる回数<input id="c_max" type="number" min="0" max="20" value="0"></label>
+        <label>事前登録の確認<select id="c_reg"><option value="">しない</option><option value="1">する（当選判定でCMSに確認）</option></select></label>
+        <label>事前登録ページのURL（https）<input id="c_regurl" placeholder="https://..."></label>
         <label>当たり時刻の決め方<select id="c_winmode"><option value="">おまかせ（自動・秘密）</option><option value="1">自分で決める</option></select></label>
         <label style="grid-column:1/-1" id="c_wintimes_wrap" hidden>当たり時刻（1行に1つ。例 2026-10-05 20:15） <span class="count" id="c_wincount"></span>
           <textarea id="c_wintimes" placeholder="2026-10-05 20:15"></textarea></label>
+        <label style="grid-column:1/-1">当選画面に出す案内文（任意。改行はそのまま出ます）
+          <textarea id="c_winmsg" style="font-family:inherit;font-size:13.5px"></textarea></label>
         <label style="grid-column:1/-1">賞品（URLやコード。1行に1つ、期間の日数ぶん） <span class="count" id="c_count"></span>
           <textarea id="c_prizes" placeholder="https://booth.pm/gifts/..."></textarea></label>
         <details style="grid-column:1/-1">
@@ -172,6 +176,9 @@ const INFO = {
   c_last: "当たり時刻の一番遅い時刻です。当たり時刻を過ぎてから最初に応募した人が当選します。",
   c_claim: "当選者が画面を閉じてしまっても、応募ページから受け取りリンクをもう一度表示できる日数です（最終日から数えます）。過ぎたら当選者の記録を消します。応募要項にも日付入りで書かれます。",
   c_prizes: "当選した人の画面に出す受け取りリンクやコードです。1行に1つ、当たり枠の数だけ入れます。上から順に配られます。",
+  c_winmsg: "当選した人の画面に出す案内文です。賞品がURLで渡せるもの（ギフト・クーポン）なら空で構いません。現物の引き換えや、当日の受け取り方法を伝えたい時に使います。作ったあとでも、一覧の「当選画面の案内文を直す」からいつでも直せます。",
+  c_reg: "「する」にすると、当選が決まる瞬間に、その人が事前登録を済ませているかを主催者側のCMSに1件だけ問い合わせます（返ってくるのは登録の有無だけで、個人情報は受け取りません）。登録が無ければ当選になりません（当たり枠は消費せず、次の応募者へ回ります）。使うには Supabase の Secrets に PRESENT_REG_CHECK_URL と PRESENT_REG_CHECK_KEY の登録が必要です。",
+  c_regurl: "応募ページと、事前登録が確認できなかった画面に出す「登録ページ」へのリンクです（https で始まるもの）。事前登録の確認を「する」にした場合は必須です。",
   c_quote: "「引用リポストのみ」にすると、普通のリポストでは当選しません。引用リポストを条件にする企画（1引用＝1口など）で使います。応募ページの説明と応募要項も、自動で引用リポストの表記に変わります。",
   c_max: "1人がこのキャンペーンに応募できる回数の上限です。0なら無制限（毎日応募できる）。応募は元から1日1回までなので、3にすると「3日ぶん＝3口まで」という意味になります。上限を超えた応募は、当たり枠もXへの問い合わせも使わずにその場で終わります。",
   c_winmode: "「おまかせ」は、毎日1枠を投稿の10分後〜上限のどこかに自動で決めます（運営にも事前には分からない形ではなく、管理画面の一覧で確認できます）。「自分で決める」は、当たり時刻を1つずつ指定します。同じ日に何枠置いても構いません（例：7名を3日間で配る）。",
@@ -297,12 +304,25 @@ async function loadCamps() {
         ${c.targetPostId ? `<span class="meta">告知ID ${esc(c.targetPostId)}</span>` : `<span class="meta">告知ID 未設定</span>`}</div>
       ${c.xUsage ? `<div class="meta"><span class="lt">Xへの問い合わせ ${c.xUsage.calls}回（ユーザー${c.xUsage.users}件・投稿${c.xUsage.posts}件を読んだ）推定 ${c.xUsage.usd.toFixed(3)}${c.xUsage.failed ? "・失敗 " + c.xUsage.failed + "回" : ""}${infoIcon("このキャンペーンの当選判定でXに問い合わせた回数と、Xの従量課金の推定額です。問い合わせるのは当たり時刻を過ぎた時だけなので、ハズレの応募では増えません。料金の根拠と、使いすぎの確認に使います。記録はこの仕組みを入れた日（2026-09-19）からです。")}</span></div>` : ""}
       ${c.slots && c.slots.length ? `<div class="meta"><span class="lt">当たり時刻 ${c.slots.map((s) => esc(jst(s.at)) + (s.used ? "（当選済み）" : "")).join(" ／ ")}${infoIcon("当選が決まる時刻です。応募者には見えません。この時刻を過ぎてから最初に条件を満たして応募した人が当選します。当選者が出なかった枠は、翌日以降へ自動で持ち越されます（時刻だけ今日に移ります）。")}</span></div>` : ""}
-      ${(c.requireQuote || c.maxEntries) ? `<div class="meta"><span class="lt">${c.requireQuote ? "引用リポストのみ有効" : ""}${c.requireQuote && c.maxEntries ? " ／ " : ""}${c.maxEntries ? "応募は1人" + c.maxEntries + "回まで" : ""}${infoIcon("このキャンペーンに付けた応募の条件です。引用リポストのみの場合、2回目の応募には引用2件、3回目には3件が応募時点で確認できることが条件になります（直近の投稿の中にあるものだけを数えます）。")}</span></div>` : ""}
+      ${(c.requireQuote || c.maxEntries || c.requireRegistration) ? `<div class="meta"><span class="lt">${c.requireQuote ? "引用リポストのみ有効" : ""}${c.requireQuote && c.maxEntries ? " ／ " : ""}${c.maxEntries ? "応募は1人" + c.maxEntries + "回まで" : ""}${c.requireRegistration ? ((c.requireQuote || c.maxEntries) ? " ／ " : "") + "事前登録の確認あり" : ""}${infoIcon("このキャンペーンに付けた応募の条件です。引用リポストのみの場合、2回目の応募には引用2件、3回目には3件が応募時点で確認できることが条件になります（直近の投稿の中にあるものだけを数えます）。")}</span></div>` : ""}
       ${c.enabled ? `<div class="row"><button class="danger" data-stop="${esc(c.slug)}">受付を止める</button></div>`
         : `<div class="row"><label><span class="lt">告知の投稿のURL${infoIcon("告知を投稿したら、その投稿のURLを貼って「開始」を押します。この投稿以降に主催者が出した投稿なら、どれをリポストしても応募の条件を満たします。")}</span><input data-post="${esc(c.slug)}" placeholder="https://x.com/…/status/…"></label>
            <button data-start="${esc(c.slug)}">開始</button></div>`}
+      <details><summary class="lt" style="cursor:pointer;font-size:12.5px;color:var(--soft)">当選画面の案内文を直す</summary>
+        <textarea data-winmsg="${esc(c.slug)}" style="font-family:inherit;font-size:13.5px;margin-top:8px">${esc(c.winMessage || "")}</textarea>
+        <div class="row" style="margin-top:8px"><button data-winsave="${esc(c.slug)}" class="sub">この文面にする</button></div>
+      </details>
       <div data-out="${esc(c.slug)}"></div>
     </div>`).join("") || '<p class="hint">まだキャンペーンがありません。</p>';
+  document.querySelectorAll("[data-winsave]").forEach((b) => b.onclick = async () => {
+    const slug = b.dataset.winsave;
+    const out = document.querySelector(`[data-out="${slug}"]`);
+    b.disabled = true;
+    const r = await api("admin-win-message", { slug, winMessage: document.querySelector(`[data-winmsg="${slug}"]`).value });
+    b.disabled = false;
+    msg(out, r.ok ? "ok" : "err", r.ok ? "当選画面の案内文を直しました" : errList(r.errors));
+    if (r.ok) await loadCamps();
+  });
   document.querySelectorAll("[data-start]").forEach((b) => b.onclick = async () => {
     const slug = b.dataset.start, out = document.querySelector('[data-out="' + slug + '"]');
     const raw = document.querySelector('[data-post="' + slug + '"]').value.trim();
@@ -348,6 +368,8 @@ $("create").addEventListener("submit", async (e) => {
     postTime: $("c_post").value, lastWin: $("c_last").value, claimDays: Number($("c_claim").value),
     prizes: prizeLines(),
     requireQuote: $("c_quote").value === "1", maxEntries: Number($("c_max").value) || 0,
+    winMessage: $("c_winmsg").value,
+    requireRegistration: $("c_reg").value === "1", registerUrl: $("c_regurl").value,
     winTimes: winManual() ? winLines() : [],
     theme: { accent: $("t_accent").value, logoUrl: $("t_logo").value, kvUrl: $("t_kv").value,
              offerTitle: $("t_offerTitle").value, offerBody: $("t_offerBody").value },

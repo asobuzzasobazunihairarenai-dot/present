@@ -76,6 +76,8 @@
   .result .big.win{color:var(--win)}
   .result{background:#fff;border-radius:10px;margin-top:1.6rem}
   .result .sub{color:var(--ink-soft);margin-top:.9rem;font-size:.97rem}
+  .winmsg{margin:1.3rem 0 0;padding:1rem 1.1rem;background:rgba(255,255,255,.72);border:1px solid var(--rule);border-radius:.6rem;
+    text-align:left;white-space:pre-wrap;line-height:1.85;font-size:.97rem}
   .prizebox{
     margin-top:1.4rem;background:#fffdf5;border:1px solid #e8dcae;border-radius:8px;padding:1.1rem;
     text-align:left;
@@ -207,9 +209,10 @@ async function showResult(id, already) {
   if (r.result === "won") {
     return show(`<div class="result">
       <div class="big mincho win">当選しました</div>
-      <p class="sub">おめでとうございます、@${esc(r.name)} さん。<br>下のリンクから受け取ってください。</p>
+      <p class="sub">おめでとうございます、@${esc(r.name)} さん。${CAMP && CAMP.winMessage ? "" : "<br>下のリンクから受け取ってください。"}</p>
+      ${CAMP && CAMP.winMessage ? `<div class="winmsg">${esc(CAMP.winMessage)}</div>` : ""}
       ${r.prize ? `<div class="prizebox">
-        <b>受け取りリンク（このページを閉じる前に開いてください）</b>
+        <b>${CAMP && CAMP.winMessage ? "ご案内のリンク（このページを閉じる前に開いてください）" : "受け取りリンク（このページを閉じる前に開いてください）"}</b>
         <a href="${esc(r.prize)}" target="_blank" rel="noopener">${esc(r.prize)}</a>
       </div>
       <p class="sub" style="font-size:.86rem">画面を閉じてしまった場合も、応募ページから当選したXアカウントでログインすると、もう一度表示できます。</p>` : ""}
@@ -219,14 +222,17 @@ async function showResult(id, already) {
   if (r.result === "not_qualified") {
     const over = r.reason === "over_limit";
     const why = r.reason === "follow" ? "フォローが確認できませんでした。"
+      : r.reason === "not_registered" ? "事前登録が確認できませんでした。"
       : r.reason === "repost" ? "リポストが確認できませんでした。"
       : over ? "このキャンペーンで応募できる回数を、すべて使い切っています。"
       : "条件の確認ができませんでした。";
+    const reg = r.reason === "not_registered" && CAMP && CAMP.registerUrl
+      ? `<br><a href="${esc(CAMP.registerUrl)}" target="_blank" rel="noopener">事前登録はこちら</a>` : "";
     const next = over ? "たくさんのご応募をありがとうございました。"
       : "フォローとリポストをご確認のうえ、また明日お試しください。";
     return show(`<div class="result">
       <div class="big mincho">${over ? "応募の上限に達しています" : "条件が確認できませんでした"}</div>
-      <p class="sub">${why}<br>${next}</p>
+      <p class="sub">${why}<br>${next}${reg}</p>
     </div>` + againLink(), over ? "応募の上限" : "条件が確認できませんでした");
   }
   return show(`<div class="result">
@@ -317,6 +323,7 @@ async function showEntry() {
       <ol class="cond">
         <li>Xで主催アカウントをフォロー</li>
         <li>対象の投稿を${c.requireQuote ? "引用リポスト" : "リポスト"}</li>
+        ${c.requireRegistration ? `<li>事前登録を済ませる${c.registerUrl ? `（<a href="${esc(c.registerUrl)}" target="_blank" rel="noopener">登録ページ</a>）` : ""}</li>` : ""}
         <li>下のボタンを押して、その場で結果を確認</li>
       </ol>
       ${c.maxEntries ? `<p class="note" style="margin-top:.8rem">応募は1日1回、期間を通じて${c.maxEntries}回までです。${c.requireQuote ? `2回目以降は、その回数ぶんの引用リポスト（2回目なら2件、3回目なら3件）が確認できることが条件になります。引用リポストの直後にご応募ください。` : ""}</p>` : ""}
