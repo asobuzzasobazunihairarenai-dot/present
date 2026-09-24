@@ -229,6 +229,8 @@ async function showResult(id, already) {
     const reg = r.reason === "not_registered" && CAMP && CAMP.registerUrl
       ? `<br><a href="${esc(CAMP.registerUrl)}" target="_blank" rel="noopener">事前登録はこちら</a>` : "";
     const next = over ? "たくさんのご応募をありがとうございました。"
+      : r.reason === "not_registered"
+        ? "事前登録がまだの方は、下のご案内からご登録のうえ、あらためてご応募ください。すでにご登録済みで、登録時にXアカウントをご記入いただいていない場合は、恐れ入りますが今回のキャンペーンの対象外となります。"
       : "フォローとリポストをご確認のうえ、また明日お試しください。";
     return show(`<div class="result">
       <div class="big mincho">${over ? "応募の上限に達しています" : "条件が確認できませんでした"}</div>
