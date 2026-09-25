@@ -212,7 +212,7 @@ async function showResult(id, already) {
       <p class="sub">おめでとうございます、@${esc(r.name)} さん。${CAMP && CAMP.winMessage ? "" : "<br>下のリンクから受け取ってください。"}</p>
       ${CAMP && CAMP.winMessage ? `<div class="winmsg">${esc(CAMP.winMessage)}</div>` : ""}
       ${r.prize ? `<div class="prizebox">
-        <b>${CAMP && CAMP.winMessage ? "ご案内のリンク（このページを閉じる前に開いてください）" : "受け取りリンク（このページを閉じる前に開いてください）"}</b>
+        <b>${CAMP && CAMP.winMessage ? "ご案内のリンク" : "受け取りリンク（このページを閉じる前に開いてください）"}</b>
         <a href="${esc(r.prize)}" target="_blank" rel="noopener">${esc(r.prize)}</a>
       </div>
       <p class="sub" style="font-size:.86rem">画面を閉じてしまった場合も、応募ページから当選したXアカウントでログインすると、もう一度表示できます。</p>` : ""}
