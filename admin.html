@@ -107,6 +107,16 @@
     </section>
 
     <section>
+      <h2>事前登録の確認（動作テスト）<span class="lt"></span></h2>
+      <p class="hint">事前登録を条件にしたキャンペーンで使います。Xのアカウント名を入れて押すと、主催者側のCMSに1件だけ問い合わせ、登録があるかどうかを確かめます。本番の当たり時刻を待たずに、つながっているかを確認できます。</p>
+      <div class="row">
+        <label style="flex:1 1 220px"><span class="lt">Xのアカウント名（@は不要）</span><input id="regX" placeholder="7shadesofseven"></label>
+        <button id="regBtn" class="sub">確認する</button>
+      </div>
+      <div id="regOut" style="margin-top:10px"></div>
+    </section>
+
+    <section>
       <h2>キャンペーン</h2>
       <p class="hint">作っただけでは受付は始まりません。告知を投稿したら、その投稿のURLを入れて「開始」を押します。</p>
       <div class="list" id="camps"></div>
@@ -290,6 +300,18 @@ $("invBtn").onclick = async () => {
   const r = await fetch(FN + "/admin-invite?name=" + encodeURIComponent(name) + "&days=" + encodeURIComponent($("invDays").value), { headers: await authHeaders() }).then((x) => x.json()).catch(() => null);
   if (!r || !r.ok) return msg($("invOut"), "err", "発行できませんでした");
   $("invOut").innerHTML = '<p class="hint" style="margin:0 0 6px">このリンクをお客さんに送ってください（' + esc(jst(r.expiresAt)) + "まで・1回だけ使えます）</p>" + copyBox(r.url);
+};
+
+$("regBtn").onclick = async () => {
+  const x = $("regX").value.trim().replace(/^@+/, "");
+  if (!x) return msg($("regOut"), "err", "Xのアカウント名を入れてください");
+  $("regBtn").disabled = true;
+  const r = await api("admin-check-registration", { x });
+  $("regBtn").disabled = false;
+  if (!r.ok) return msg($("regOut"), "err", "確認できませんでした：" + esc(r.error || ""));
+  msg($("regOut"), r.registered ? "ok" : "err",
+    r.registered ? "@" + esc(x) + " は事前登録が確認できました（このアカウントは当選できます）"
+                 : "@" + esc(x) + " は事前登録が見つかりませんでした（このアカウントは当選になりません）");
 };
 
 async function loadCamps() {
