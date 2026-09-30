@@ -330,11 +330,11 @@ async function loadCamps() {
       ${c.enabled ? `<div class="row"><button class="danger" data-stop="${esc(c.slug)}">受付を止める</button></div>`
         : `<div class="row"><label><span class="lt">告知の投稿のURL${infoIcon("告知を投稿したら、その投稿のURLを貼って「開始」を押します。この投稿以降に主催者が出した投稿なら、どれをリポストしても応募の条件を満たします。")}</span><input data-post="${esc(c.slug)}" placeholder="https://x.com/…/status/…"></label>
            <button data-start="${esc(c.slug)}">開始</button></div>`}
+      <div data-out="${esc(c.slug)}"></div>
       <details><summary class="lt" style="cursor:pointer;font-size:12.5px;color:var(--soft)">当選画面の案内文を直す</summary>
         <textarea data-winmsg="${esc(c.slug)}" style="font-family:inherit;font-size:13.5px;margin-top:8px">${esc(c.winMessage || "")}</textarea>
         <div class="row" style="margin-top:8px"><button data-winsave="${esc(c.slug)}" class="sub">この文面にする</button></div>
       </details>
-      <div data-out="${esc(c.slug)}"></div>
     </div>`).join("") || '<p class="hint">まだキャンペーンがありません。</p>';
   document.querySelectorAll("[data-winsave]").forEach((b) => b.onclick = async () => {
     const slug = b.dataset.winsave;
