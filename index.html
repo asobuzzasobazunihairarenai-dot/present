@@ -341,8 +341,9 @@ async function showEntry() {
     </label>` : ""}
 
     ${c.state !== "after" ? `
+    <div class="msg" id="iab-warn" style="display:none;margin-top:1rem"></div>
     <button class="go" id="go" ${closed ? "disabled" : ""}>Xでログインして抽選する</button>
-    <p class="note" style="text-align:center">Xの公式画面でログインします。このアプリは読み取りのみで、投稿やDMはできません。<br>うまく進めない場合は、Safariなど別のブラウザでこのページを開き直してください。</p>` : ""}
+    <p class="note" style="text-align:center">Xの公式画面でログインします。このアプリは読み取りのみで、投稿やDMはできません。<br>Xからログアウトしていると、ログイン画面が繰り返し出ることがあります。その場合は先に <a href="https://x.com/home" target="_blank" rel="noopener">x.com を開いてログイン</a>してから、このページに戻ってきてください。</p>` : ""}
 
     ${c.terms ? `<details><summary>応募要項を読む</summary><pre>${esc(c.terms)}</pre></details>` : ""}
 
@@ -359,6 +360,21 @@ async function showEntry() {
     claimBtn.textContent = "Xへ移動しています…";
     location.href = FN + "/start?c=" + encodeURIComponent(SLUG) + "&claim=1";
   });
+
+  // Xアプリ等の「アプリ内ブラウザ」だとXのログイン画面が開けないため、先に知らせる。
+  // iOSのWKWebViewはUAに "Safari/" を持たない（SFSafariViewControllerは持つ）。
+  const warnBox = document.getElementById("iab-warn");
+  if (warnBox) {
+    const ua = navigator.userAgent || "";
+    const iOS = /iPhone|iPad|iPod/.test(ua);
+    const inApp = /Twitter|FBAN|FBAV|Instagram/.test(ua) || ua.includes("Line/") || (iOS && !/Safari/.test(ua));
+    if (inApp) {
+      warnBox.innerHTML = "<b>このページは、アプリの中のブラウザで開かれています。</b><br>" +
+        "この画面ではXのログインに進めないことがあります。右上の「…」や共有ボタンから" +
+        "<b>「ブラウザで開く」</b>を選び、Safariなどで開き直してください。";
+      warnBox.style.display = "";
+    }
+  }
 
   const go = document.getElementById("go");
   const agree = document.getElementById("agree");
